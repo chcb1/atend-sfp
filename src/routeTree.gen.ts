@@ -9,61 +9,189 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticated/clientes'
+import { Route as AuthenticatedAtendimentosIndexRouteImport } from './routes/_authenticated/atendimentos.index'
+import { Route as AuthenticatedAtendimentosNovoRouteImport } from './routes/_authenticated/atendimentos.novo'
+import { Route as AuthenticatedAtendimentosIdEditarRouteImport } from './routes/_authenticated/atendimentos.$id.editar'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedClientesRoute = AuthenticatedClientesRouteImport.update({
+  id: '/clientes',
+  path: '/clientes',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAtendimentosIndexRoute =
+  AuthenticatedAtendimentosIndexRouteImport.update({
+    id: '/atendimentos/',
+    path: '/atendimentos/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAtendimentosNovoRoute =
+  AuthenticatedAtendimentosNovoRouteImport.update({
+    id: '/atendimentos/novo',
+    path: '/atendimentos/novo',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAtendimentosIdEditarRoute =
+  AuthenticatedAtendimentosIdEditarRouteImport.update({
+    id: '/atendimentos/$id/editar',
+    path: '/atendimentos/$id/editar',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/': typeof AuthenticatedIndexRoute
+  '/auth': typeof AuthRoute
+  '/clientes': typeof AuthenticatedClientesRoute
+  '/atendimentos/novo': typeof AuthenticatedAtendimentosNovoRoute
+  '/atendimentos/': typeof AuthenticatedAtendimentosIndexRoute
+  '/atendimentos/$id/editar': typeof AuthenticatedAtendimentosIdEditarRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/clientes': typeof AuthenticatedClientesRoute
+  '/': typeof AuthenticatedIndexRoute
+  '/atendimentos/novo': typeof AuthenticatedAtendimentosNovoRoute
+  '/atendimentos': typeof AuthenticatedAtendimentosIndexRoute
+  '/atendimentos/$id/editar': typeof AuthenticatedAtendimentosIdEditarRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/_authenticated/clientes': typeof AuthenticatedClientesRoute
+  '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/atendimentos/novo': typeof AuthenticatedAtendimentosNovoRoute
+  '/_authenticated/atendimentos/': typeof AuthenticatedAtendimentosIndexRoute
+  '/_authenticated/atendimentos/$id/editar': typeof AuthenticatedAtendimentosIdEditarRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/clientes'
+    | '/atendimentos/novo'
+    | '/atendimentos/'
+    | '/atendimentos/$id/editar'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/auth'
+    | '/clientes'
+    | '/'
+    | '/atendimentos/novo'
+    | '/atendimentos'
+    | '/atendimentos/$id/editar'
+  id:
+    | '__root__'
+    | '/_authenticated'
+    | '/auth'
+    | '/_authenticated/clientes'
+    | '/_authenticated/'
+    | '/_authenticated/atendimentos/novo'
+    | '/_authenticated/atendimentos/'
+    | '/_authenticated/atendimentos/$id/editar'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/': {
+      id: '/_authenticated/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/clientes': {
+      id: '/_authenticated/clientes'
+      path: '/clientes'
+      fullPath: '/clientes'
+      preLoaderRoute: typeof AuthenticatedClientesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/atendimentos/': {
+      id: '/_authenticated/atendimentos/'
+      path: '/atendimentos'
+      fullPath: '/atendimentos/'
+      preLoaderRoute: typeof AuthenticatedAtendimentosIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/atendimentos/novo': {
+      id: '/_authenticated/atendimentos/novo'
+      path: '/atendimentos/novo'
+      fullPath: '/atendimentos/novo'
+      preLoaderRoute: typeof AuthenticatedAtendimentosNovoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/atendimentos/$id/editar': {
+      id: '/_authenticated/atendimentos/$id/editar'
+      path: '/atendimentos/$id/editar'
+      fullPath: '/atendimentos/$id/editar'
+      preLoaderRoute: typeof AuthenticatedAtendimentosIdEditarRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedClientesRoute: typeof AuthenticatedClientesRoute
+  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedAtendimentosNovoRoute: typeof AuthenticatedAtendimentosNovoRoute
+  AuthenticatedAtendimentosIndexRoute: typeof AuthenticatedAtendimentosIndexRoute
+  AuthenticatedAtendimentosIdEditarRoute: typeof AuthenticatedAtendimentosIdEditarRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedClientesRoute: AuthenticatedClientesRoute,
+  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedAtendimentosNovoRoute: AuthenticatedAtendimentosNovoRoute,
+  AuthenticatedAtendimentosIndexRoute: AuthenticatedAtendimentosIndexRoute,
+  AuthenticatedAtendimentosIdEditarRoute:
+    AuthenticatedAtendimentosIdEditarRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
