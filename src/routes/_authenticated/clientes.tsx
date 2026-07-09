@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -148,7 +148,14 @@ export function ClientForm({
   const [email, setEmail] = useState("");
   const [notes, setNotes] = useState("");
 
-  useState(() => {}); // no-op
+  useEffect(() => {
+    if (open) {
+      setName(client?.name ?? "");
+      setPhone(client?.phone ?? "");
+      setEmail(client?.email ?? "");
+      setNotes(client?.notes ?? "");
+    }
+  }, [open, client]);
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -163,17 +170,6 @@ export function ClientForm({
     },
     onError: (e: Error) => toast.error(e.message),
   });
-
-  // Reset when opening
-  const [lastId, setLastId] = useState<string | null | undefined>(undefined);
-  if (open && lastId !== (client?.id ?? null)) {
-    setLastId(client?.id ?? null);
-    setName(client?.name ?? "");
-    setPhone(client?.phone ?? "");
-    setEmail(client?.email ?? "");
-    setNotes(client?.notes ?? "");
-  }
-  if (!open && lastId !== undefined) setLastId(undefined);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
