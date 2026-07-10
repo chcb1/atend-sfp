@@ -27,13 +27,21 @@ function AuthPage() {
     });
   }, [navigate]);
 
+  function translateError(msg: string): string {
+    const m = msg.toLowerCase();
+    if (m.includes("weak") || m.includes("pwned")) return "Senha muito fraca ou já vazada em outros sites. Use uma senha forte com letras, números e símbolos (mín. 8 caracteres).";
+    if (m.includes("invalid login")) return "Email ou senha inválidos.";
+    if (m.includes("already registered") || m.includes("already been registered") || m.includes("user already")) return "Este email já está cadastrado. Faça login.";
+    return msg;
+  }
+
   async function handleSignIn(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
-      toast.error(error.message);
+      toast.error(translateError(error.message));
       return;
     }
     toast.success("Bem-vindo!");
@@ -42,6 +50,10 @@ function AuthPage() {
 
   async function handleSignUp(e: React.FormEvent) {
     e.preventDefault();
+    if (password.length < 8) {
+      toast.error("A senha deve ter no mínimo 8 caracteres.");
+      return;
+    }
     setLoading(true);
     const { error } = await supabase.auth.signUp({
       email,
@@ -50,7 +62,7 @@ function AuthPage() {
     });
     setLoading(false);
     if (error) {
-      toast.error(error.message);
+      toast.error(translateError(error.message));
       return;
     }
     toast.success("Conta criada! Entrando...");
