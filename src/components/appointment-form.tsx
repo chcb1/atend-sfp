@@ -316,7 +316,9 @@ export function AppointmentForm({ appointment }: { appointment?: Appointment }) 
         procedure={null}
         onSaved={(p) => {
           qc.invalidateQueries({ queryKey: ["procedures"] });
-          onSelectProcedure(p.id);
+          setProcedureId(p.id);
+          setProcedure(p.name);
+          setGrossValue(String(p.default_value));
         }}
       />
     </>
