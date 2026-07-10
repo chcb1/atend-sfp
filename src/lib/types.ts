@@ -13,6 +13,7 @@ export type Appointment = {
   id: string;
   user_id: string;
   date: string; // YYYY-MM-DD
+  procedure_id: string | null;
   client_id: string | null;
   client_name: string;
   procedure: string;
