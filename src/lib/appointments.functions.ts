@@ -71,6 +71,7 @@ export const createAppointment = createServerFn({ method: "POST" })
       date: data.date,
       client_id: data.client_id || null,
       client_name: data.client_name,
+      procedure_id: data.procedure_id || null,
       procedure: data.procedure,
       gross_value: data.gross_value,
       expenses: data.expenses ?? 0,
