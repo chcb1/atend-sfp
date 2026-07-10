@@ -230,16 +230,24 @@ function Dashboard() {
   );
 }
 
+function pctOf(part: number, total: number): string | undefined {
+  if (!total) return undefined;
+  const pct = (part / total) * 100;
+  return `${pct.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}% da receita bruta`;
+}
+
 function KpiCard({
   label,
   value,
   icon: Icon,
   tone = "muted",
+  percent,
 }: {
   label: string;
   value: string;
   icon?: React.ComponentType<{ className?: string }>;
   tone?: "muted" | "primary";
+  percent?: string;
 }) {
   return (
     <Card className={tone === "primary" ? "border-primary/40 bg-primary/5" : undefined}>
@@ -251,6 +259,11 @@ function KpiCard({
         <div className={"mt-2 text-2xl font-semibold tabular-nums " + (tone === "primary" ? "text-primary" : "")}>
           {value}
         </div>
+        {percent && (
+          <div className={"mt-1 text-xs " + (tone === "primary" ? "text-primary/80" : "text-muted-foreground")}>
+            {percent}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
