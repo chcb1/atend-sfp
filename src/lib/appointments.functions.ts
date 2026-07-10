@@ -7,6 +7,7 @@ const apptInput = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Data inválida"),
   client_id: z.string().uuid().nullable().optional(),
   client_name: z.string().trim().min(1, "Cliente é obrigatório"),
+  procedure_id: z.string().uuid().nullable().optional(),
   procedure: z.string().trim().min(1, "Procedimento é obrigatório"),
   gross_value: z.number().nonnegative(),
   expenses: z.number().nonnegative().default(0),
