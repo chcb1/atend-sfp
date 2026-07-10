@@ -98,6 +98,7 @@ export const updateAppointment = createServerFn({ method: "POST" })
         date: rest.date,
         client_id: rest.client_id || null,
         client_name: rest.client_name,
+        procedure_id: rest.procedure_id || null,
         procedure: rest.procedure,
         gross_value: rest.gross_value,
         expenses: rest.expenses ?? 0,
