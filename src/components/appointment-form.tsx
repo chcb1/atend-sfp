@@ -17,8 +17,10 @@ import {
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { listClients } from "@/lib/clients.functions";
+import { listProcedures } from "@/lib/procedures.functions";
 import { createAppointment, updateAppointment } from "@/lib/appointments.functions";
 import { ClientForm } from "@/routes/_authenticated/clientes";
+import { ProcedureForm } from "@/routes/_authenticated/procedimentos";
 import type { Appointment } from "@/lib/types";
 import { brl, todayIso } from "@/lib/format";
 
@@ -31,10 +33,16 @@ export function AppointmentForm({ appointment }: { appointment?: Appointment }) 
     queryKey: ["clients"],
     queryFn: () => list(),
   });
+  const listProcs = useServerFn(listProcedures);
+  const { data: procedures = [] } = useQuery({
+    queryKey: ["procedures"],
+    queryFn: () => listProcs(),
+  });
 
   const [date, setDate] = useState(appointment?.date ?? todayIso());
   const [clientId, setClientId] = useState<string>(appointment?.client_id ?? "");
   const [clientName, setClientName] = useState(appointment?.client_name ?? "");
+  const [procedureId, setProcedureId] = useState<string>(appointment?.procedure_id ?? "");
   const [procedure, setProcedure] = useState(appointment?.procedure ?? "");
   const [grossValue, setGrossValue] = useState<string>(
     appointment ? String(appointment.gross_value) : "",
@@ -46,6 +54,7 @@ export function AppointmentForm({ appointment }: { appointment?: Appointment }) 
   const [notes, setNotes] = useState(appointment?.notes ?? "");
 
   const [newClientOpen, setNewClientOpen] = useState(false);
+  const [newProcedureOpen, setNewProcedureOpen] = useState(false);
 
   const netValue = useMemo(() => {
     const g = parseFloat(grossValue) || 0;
@@ -70,6 +79,7 @@ export function AppointmentForm({ appointment }: { appointment?: Appointment }) 
         date,
         client_id: clientId || null,
         client_name: clientName.trim(),
+        procedure_id: procedureId || null,
         procedure: procedure.trim(),
         gross_value: parseFloat(grossValue) || 0,
         expenses: parseFloat(expenses) || 0,
@@ -88,6 +98,16 @@ export function AppointmentForm({ appointment }: { appointment?: Appointment }) 
     onError: (e: Error) => toast.error(e.message),
   });
 
+  function onSelectProcedure(id: string) {
+    setProcedureId(id);
+    const p = procedures.find((x) => x.id === id);
+    if (p) {
+      setProcedure(p.name);
+      // Sempre sugere o valor padrão; o usuário pode editar caso seja diferente.
+      setGrossValue(String(p.default_value));
+    }
+  }
+
   return (
     <>
       <Card>
@@ -100,6 +120,10 @@ export function AppointmentForm({ appointment }: { appointment?: Appointment }) 
               e.preventDefault();
               if (!clientName.trim()) {
                 toast.error("Selecione ou informe o cliente");
+                return;
+              }
+              if (!procedure.trim()) {
+                toast.error("Selecione ou informe o procedimento");
                 return;
               }
               mutation.mutate();
@@ -155,13 +179,46 @@ export function AppointmentForm({ appointment }: { appointment?: Appointment }) 
 
             <div className="space-y-2">
               <Label htmlFor="procedure">Procedimento *</Label>
-              <Input
-                id="procedure"
-                value={procedure}
-                onChange={(e) => setProcedure(e.target.value)}
-                placeholder="Ex: Limpeza de Pele"
-                required
-              />
+              <div className="flex gap-2">
+                <Select
+                  value={procedureId || "__none"}
+                  onValueChange={(v) => {
+                    if (v === "__none") {
+                      setProcedureId("");
+                    } else {
+                      onSelectProcedure(v);
+                    }
+                  }}
+                >
+                  <SelectTrigger id="procedure" className="flex-1">
+                    <SelectValue placeholder="Selecione um procedimento" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none">— Procedimento avulso —</SelectItem>
+                    {procedures.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.name} · {brl(Number(p.default_value))}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setNewProcedureOpen(true)}
+                  title="Novo procedimento"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+              {!procedureId && (
+                <Input
+                  placeholder="Nome do procedimento avulso"
+                  value={procedure}
+                  onChange={(e) => setProcedure(e.target.value)}
+                />
+              )}
             </div>
 
             <div className="grid gap-4 md:grid-cols-3">
@@ -176,6 +233,11 @@ export function AppointmentForm({ appointment }: { appointment?: Appointment }) 
                   onChange={(e) => setGrossValue(e.target.value)}
                   required
                 />
+                {procedureId && (
+                  <p className="text-xs text-muted-foreground">
+                    Sugerido pelo procedimento — edite se o valor for diferente.
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="exp">Despesas</Label>
@@ -245,6 +307,18 @@ export function AppointmentForm({ appointment }: { appointment?: Appointment }) 
           qc.invalidateQueries({ queryKey: ["clients"] });
           setClientId(c.id);
           setClientName(c.name);
+        }}
+      />
+
+      <ProcedureForm
+        open={newProcedureOpen}
+        onOpenChange={setNewProcedureOpen}
+        procedure={null}
+        onSaved={(p) => {
+          qc.invalidateQueries({ queryKey: ["procedures"] });
+          setProcedureId(p.id);
+          setProcedure(p.name);
+          setGrossValue(String(p.default_value));
         }}
       />
     </>

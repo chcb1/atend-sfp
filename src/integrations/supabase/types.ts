@@ -26,6 +26,7 @@ export type Database = {
           net_value: number | null
           notes: string | null
           procedure: string
+          procedure_id: string | null
           tax: number
           updated_at: string
           user_id: string
@@ -41,6 +42,7 @@ export type Database = {
           net_value?: number | null
           notes?: string | null
           procedure: string
+          procedure_id?: string | null
           tax?: number
           updated_at?: string
           user_id: string
@@ -56,6 +58,7 @@ export type Database = {
           net_value?: number | null
           notes?: string | null
           procedure?: string
+          procedure_id?: string | null
           tax?: number
           updated_at?: string
           user_id?: string
@@ -66,6 +69,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_procedure_id_fkey"
+            columns: ["procedure_id"]
+            isOneToOne: false
+            referencedRelation: "procedures"
             referencedColumns: ["id"]
           },
         ]
@@ -98,6 +108,36 @@ export type Database = {
           name?: string
           notes?: string | null
           phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      procedures: {
+        Row: {
+          created_at: string
+          default_value: number
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          default_value?: number
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          default_value?: number
+          description?: string | null
+          id?: string
+          name?: string
           updated_at?: string
           user_id?: string
         }

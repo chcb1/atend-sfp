@@ -91,9 +91,27 @@ function Dashboard() {
         <>
           <div className="grid gap-4 md:grid-cols-4">
             <KpiCard label="Receita Bruta" value={brl(data.totalGross)} icon={DollarSign} tone="muted" />
-            <KpiCard label="Despesas" value={brl(data.totalExpenses)} icon={Receipt} tone="muted" />
-            <KpiCard label="Impostos / Taxas" value={brl(data.totalTax)} icon={Percent} tone="muted" />
-            <KpiCard label="Lucro Líquido" value={brl(data.totalNet)} icon={TrendingUp} tone="primary" />
+            <KpiCard
+              label="Despesas"
+              value={brl(data.totalExpenses)}
+              icon={Receipt}
+              tone="muted"
+              percent={pctOf(data.totalExpenses, data.totalGross)}
+            />
+            <KpiCard
+              label="Impostos / Taxas"
+              value={brl(data.totalTax)}
+              icon={Percent}
+              tone="muted"
+              percent={pctOf(data.totalTax, data.totalGross)}
+            />
+            <KpiCard
+              label="Lucro Líquido"
+              value={brl(data.totalNet)}
+              icon={TrendingUp}
+              tone="primary"
+              percent={pctOf(data.totalNet, data.totalGross)}
+            />
           </div>
 
           <div className="grid gap-4 md:grid-cols-3">
@@ -212,16 +230,24 @@ function Dashboard() {
   );
 }
 
+function pctOf(part: number, total: number): string | undefined {
+  if (!total) return undefined;
+  const pct = (part / total) * 100;
+  return `${pct.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}% da receita bruta`;
+}
+
 function KpiCard({
   label,
   value,
   icon: Icon,
   tone = "muted",
+  percent,
 }: {
   label: string;
   value: string;
   icon?: React.ComponentType<{ className?: string }>;
   tone?: "muted" | "primary";
+  percent?: string;
 }) {
   return (
     <Card className={tone === "primary" ? "border-primary/40 bg-primary/5" : undefined}>
@@ -233,6 +259,11 @@ function KpiCard({
         <div className={"mt-2 text-2xl font-semibold tabular-nums " + (tone === "primary" ? "text-primary" : "")}>
           {value}
         </div>
+        {percent && (
+          <div className={"mt-1 text-xs " + (tone === "primary" ? "text-primary/80" : "text-muted-foreground")}>
+            {percent}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

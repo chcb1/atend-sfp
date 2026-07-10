@@ -9,10 +9,22 @@ export type Client = {
   updated_at: string;
 };
 
+export type Procedure = {
+  id: string;
+  user_id: string;
+  name: string;
+  description: string | null;
+  default_value: number;
+  created_at: string;
+  updated_at: string;
+};
+
+
 export type Appointment = {
   id: string;
   user_id: string;
   date: string; // YYYY-MM-DD
+  procedure_id: string | null;
   client_id: string | null;
   client_name: string;
   procedure: string;

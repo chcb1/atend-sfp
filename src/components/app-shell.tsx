@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Link, useRouter, useLocation } from "@tanstack/react-router";
-import { LayoutDashboard, ClipboardList, Users, LogOut, Wallet } from "lucide-react";
+import { LayoutDashboard, ClipboardList, Users, LogOut, Wallet, Stethoscope } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 const nav = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
   { to: "/atendimentos", label: "Atendimentos", icon: ClipboardList },
+  { to: "/procedimentos", label: "Procedimentos", icon: Stethoscope },
   { to: "/clientes", label: "Clientes", icon: Users },
 ] as const;
 
