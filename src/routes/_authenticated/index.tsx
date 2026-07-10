@@ -91,9 +91,27 @@ function Dashboard() {
         <>
           <div className="grid gap-4 md:grid-cols-4">
             <KpiCard label="Receita Bruta" value={brl(data.totalGross)} icon={DollarSign} tone="muted" />
-            <KpiCard label="Despesas" value={brl(data.totalExpenses)} icon={Receipt} tone="muted" />
-            <KpiCard label="Impostos / Taxas" value={brl(data.totalTax)} icon={Percent} tone="muted" />
-            <KpiCard label="Lucro Líquido" value={brl(data.totalNet)} icon={TrendingUp} tone="primary" />
+            <KpiCard
+              label="Despesas"
+              value={brl(data.totalExpenses)}
+              icon={Receipt}
+              tone="muted"
+              percent={pctOf(data.totalExpenses, data.totalGross)}
+            />
+            <KpiCard
+              label="Impostos / Taxas"
+              value={brl(data.totalTax)}
+              icon={Percent}
+              tone="muted"
+              percent={pctOf(data.totalTax, data.totalGross)}
+            />
+            <KpiCard
+              label="Lucro Líquido"
+              value={brl(data.totalNet)}
+              icon={TrendingUp}
+              tone="primary"
+              percent={pctOf(data.totalNet, data.totalGross)}
+            />
           </div>
 
           <div className="grid gap-4 md:grid-cols-3">
