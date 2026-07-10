@@ -7,19 +7,25 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { Wallet } from "lucide-react";
+import { Wallet, AlertCircle } from "lucide-react";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
   component: AuthPage,
 });
 
+type AuthError = { title: string; detail: string; hint?: string };
+
 function AuthPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [signInError, setSignInError] = useState<AuthError | null>(null);
+  const [signUpError, setSignUpError] = useState<AuthError | null>(null);
+  const [tab, setTab] = useState<"signin" | "signup">("signin");
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -27,21 +33,55 @@ function AuthPage() {
     });
   }, [navigate]);
 
-  function translateError(msg: string): string {
-    const m = msg.toLowerCase();
-    if (m.includes("weak") || m.includes("pwned")) return "Senha muito fraca ou já vazada em outros sites. Use uma senha forte com letras, números e símbolos (mín. 8 caracteres).";
-    if (m.includes("invalid login")) return "Email ou senha inválidos.";
-    if (m.includes("already registered") || m.includes("already been registered") || m.includes("user already")) return "Este email já está cadastrado. Faça login.";
-    return msg;
+  function translateError(msg: string, code?: string): AuthError {
+    const m = (msg || "").toLowerCase();
+    const c = (code || "").toLowerCase();
+    if (c === "weak_password" || m.includes("pwned") || m.includes("weak password") || m.includes("known to be weak")) {
+      return {
+        title: "Senha muito fraca ou vazada",
+        detail: "Esta senha aparece em vazamentos públicos ou é fácil de adivinhar.",
+        hint: "Use pelo menos 8 caracteres combinando letras maiúsculas, minúsculas, números e símbolos. Ex.: MinhaSenh@2026",
+      };
+    }
+    if (c === "invalid_credentials" || m.includes("invalid login")) {
+      return {
+        title: "Email ou senha inválidos",
+        detail: "Não encontramos uma conta com essas credenciais.",
+        hint: "Verifique se digitou corretamente ou crie uma nova conta na aba 'Criar conta'.",
+      };
+    }
+    if (c === "user_already_exists" || m.includes("already registered") || m.includes("user already")) {
+      return {
+        title: "Email já cadastrado",
+        detail: "Este email já possui uma conta.",
+        hint: "Vá para a aba 'Entrar' e faça login com sua senha.",
+      };
+    }
+    if (m.includes("email") && m.includes("invalid")) {
+      return { title: "Email inválido", detail: "Verifique o email informado." };
+    }
+    if (m.includes("rate limit") || m.includes("too many")) {
+      return { title: "Muitas tentativas", detail: "Aguarde alguns minutos antes de tentar novamente." };
+    }
+    if (m.includes("network") || m.includes("failed to fetch")) {
+      return {
+        title: "Erro de conexão",
+        detail: "Não foi possível conectar ao servidor de autenticação.",
+        hint: "Verifique sua internet ou tente novamente pela URL publicada.",
+      };
+    }
+    return { title: "Erro ao processar", detail: msg || "Ocorreu um erro inesperado." };
   }
 
   async function handleSignIn(e: React.FormEvent) {
     e.preventDefault();
+    setSignInError(null);
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
-      toast.error(translateError(error.message));
+      const err = translateError(error.message, (error as { code?: string }).code);
+      setSignInError(err);
       return;
     }
     toast.success("Bem-vindo!");
@@ -50,8 +90,13 @@ function AuthPage() {
 
   async function handleSignUp(e: React.FormEvent) {
     e.preventDefault();
+    setSignUpError(null);
     if (password.length < 8) {
-      toast.error("A senha deve ter no mínimo 8 caracteres.");
+      setSignUpError({
+        title: "Senha muito curta",
+        detail: "A senha precisa ter no mínimo 8 caracteres.",
+        hint: "Combine letras maiúsculas, minúsculas, números e símbolos.",
+      });
       return;
     }
     setLoading(true);
@@ -62,7 +107,8 @@ function AuthPage() {
     });
     setLoading(false);
     if (error) {
-      toast.error(translateError(error.message));
+      const err = translateError(error.message, (error as { code?: string }).code);
+      setSignUpError(err);
       return;
     }
     toast.success("Conta criada! Entrando...");
@@ -71,15 +117,32 @@ function AuthPage() {
   }
 
   async function handleGoogle() {
+    setSignInError(null);
+    setSignUpError(null);
     const result = await lovable.auth.signInWithOAuth("google", {
       redirect_uri: window.location.origin,
     });
     if (result.error) {
-      toast.error(result.error.message ?? "Erro ao entrar com Google");
+      const err = translateError(result.error.message ?? "Erro ao entrar com Google");
+      if (tab === "signup") setSignUpError(err);
+      else setSignInError(err);
       return;
     }
     if (result.redirected) return;
     navigate({ to: "/", replace: true });
+  }
+
+  function ErrorBox({ error }: { error: AuthError }) {
+    return (
+      <Alert variant="destructive" className="mb-4">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>{error.title}</AlertTitle>
+        <AlertDescription>
+          <p>{error.detail}</p>
+          {error.hint && <p className="mt-1 text-xs opacity-90">{error.hint}</p>}
+        </AlertDescription>
+      </Alert>
+    );
   }
 
   return (
@@ -98,12 +161,13 @@ function AuthPage() {
             <CardDescription>Entre ou crie sua conta para começar.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="signin">
+            <Tabs value={tab} onValueChange={(v) => { setTab(v as "signin" | "signup"); setSignInError(null); setSignUpError(null); }}>
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="signin">Entrar</TabsTrigger>
                 <TabsTrigger value="signup">Criar conta</TabsTrigger>
               </TabsList>
               <TabsContent value="signin" className="mt-4">
+                {signInError && <ErrorBox error={signInError} />}
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="email-in">Email</Label>
@@ -119,6 +183,7 @@ function AuthPage() {
                 </form>
               </TabsContent>
               <TabsContent value="signup" className="mt-4">
+                {signUpError && <ErrorBox error={signUpError} />}
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="email-up">Email</Label>
@@ -126,7 +191,18 @@ function AuthPage() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="pw-up">Senha</Label>
-                    <Input id="pw-up" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
+                    <Input
+                      id="pw-up"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      minLength={8}
+                      aria-invalid={!!signUpError}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Mínimo 8 caracteres. Use letras, números e símbolos. Senhas comuns ou vazadas são bloqueadas.
+                    </p>
                   </div>
                   <Button type="submit" className="w-full" disabled={loading}>
                     Criar conta
