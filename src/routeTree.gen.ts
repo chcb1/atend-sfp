@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedProcedimentosRouteImport } from './routes/_authenticated/procedimentos'
 import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticated/clientes'
 import { Route as AuthenticatedAtendimentosIndexRouteImport } from './routes/_authenticated/atendimentos.index'
 import { Route as AuthenticatedAtendimentosNovoRouteImport } from './routes/_authenticated/atendimentos.novo'
@@ -31,6 +32,12 @@ const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedProcedimentosRoute =
+  AuthenticatedProcedimentosRouteImport.update({
+    id: '/procedimentos',
+    path: '/procedimentos',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedClientesRoute = AuthenticatedClientesRouteImport.update({
   id: '/clientes',
   path: '/clientes',
@@ -59,6 +66,7 @@ export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/auth': typeof AuthRoute
   '/clientes': typeof AuthenticatedClientesRoute
+  '/procedimentos': typeof AuthenticatedProcedimentosRoute
   '/atendimentos/novo': typeof AuthenticatedAtendimentosNovoRoute
   '/atendimentos/': typeof AuthenticatedAtendimentosIndexRoute
   '/atendimentos/$id/editar': typeof AuthenticatedAtendimentosIdEditarRoute
@@ -66,6 +74,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/clientes': typeof AuthenticatedClientesRoute
+  '/procedimentos': typeof AuthenticatedProcedimentosRoute
   '/': typeof AuthenticatedIndexRoute
   '/atendimentos/novo': typeof AuthenticatedAtendimentosNovoRoute
   '/atendimentos': typeof AuthenticatedAtendimentosIndexRoute
@@ -76,6 +85,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/clientes': typeof AuthenticatedClientesRoute
+  '/_authenticated/procedimentos': typeof AuthenticatedProcedimentosRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/atendimentos/novo': typeof AuthenticatedAtendimentosNovoRoute
   '/_authenticated/atendimentos/': typeof AuthenticatedAtendimentosIndexRoute
@@ -87,6 +97,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/clientes'
+    | '/procedimentos'
     | '/atendimentos/novo'
     | '/atendimentos/'
     | '/atendimentos/$id/editar'
@@ -94,6 +105,7 @@ export interface FileRouteTypes {
   to:
     | '/auth'
     | '/clientes'
+    | '/procedimentos'
     | '/'
     | '/atendimentos/novo'
     | '/atendimentos'
@@ -103,6 +115,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/clientes'
+    | '/_authenticated/procedimentos'
     | '/_authenticated/'
     | '/_authenticated/atendimentos/novo'
     | '/_authenticated/atendimentos/'
@@ -135,6 +148,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/procedimentos': {
+      id: '/_authenticated/procedimentos'
+      path: '/procedimentos'
+      fullPath: '/procedimentos'
+      preLoaderRoute: typeof AuthenticatedProcedimentosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/clientes': {
@@ -170,6 +190,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedClientesRoute: typeof AuthenticatedClientesRoute
+  AuthenticatedProcedimentosRoute: typeof AuthenticatedProcedimentosRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedAtendimentosNovoRoute: typeof AuthenticatedAtendimentosNovoRoute
   AuthenticatedAtendimentosIndexRoute: typeof AuthenticatedAtendimentosIndexRoute
@@ -178,6 +199,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedClientesRoute: AuthenticatedClientesRoute,
+  AuthenticatedProcedimentosRoute: AuthenticatedProcedimentosRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedAtendimentosNovoRoute: AuthenticatedAtendimentosNovoRoute,
   AuthenticatedAtendimentosIndexRoute: AuthenticatedAtendimentosIndexRoute,
