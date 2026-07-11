@@ -33,6 +33,12 @@ export function AppShell({ children }: { children: ReactNode }) {
   const router = useRouter();
   const location = useLocation();
   const qc = useQueryClient();
+  const checkAdmin = useServerFn(isCurrentUserAdmin);
+  const { data: isAdmin = false } = useQuery({
+    queryKey: ["me", "isAdmin"],
+    queryFn: () => checkAdmin(),
+    staleTime: 60_000,
+  });
 
   async function handleSignOut() {
     await qc.cancelQueries();
@@ -40,6 +46,8 @@ export function AppShell({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
     router.navigate({ to: "/auth", replace: true });
   }
+
+  const items = [...nav, ...(isAdmin ? adminNav : [])];
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -52,7 +60,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <span>Financeiro</span>
           </Link>
           <nav className="flex items-center gap-1">
-            {nav.map((item) => {
+            {items.map((item) => {
               const active =
                 item.to === "/"
                   ? location.pathname === "/"
