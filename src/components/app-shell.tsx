@@ -1,9 +1,20 @@
 import type { ReactNode } from "react";
 import { Link, useRouter, useLocation } from "@tanstack/react-router";
-import { LayoutDashboard, ClipboardList, Users, LogOut, Wallet, Stethoscope } from "lucide-react";
+import {
+  LayoutDashboard,
+  ClipboardList,
+  Users,
+  LogOut,
+  Wallet,
+  Stethoscope,
+  Shield,
+  ScrollText,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { isCurrentUserAdmin } from "@/lib/admin.functions";
 import { cn } from "@/lib/utils";
 
 const nav = [
@@ -11,6 +22,11 @@ const nav = [
   { to: "/atendimentos", label: "Atendimentos", icon: ClipboardList },
   { to: "/procedimentos", label: "Procedimentos", icon: Stethoscope },
   { to: "/clientes", label: "Clientes", icon: Users },
+] as const;
+
+const adminNav = [
+  { to: "/usuarios", label: "Usuários", icon: Shield },
+  { to: "/auditoria", label: "Auditoria", icon: ScrollText },
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
