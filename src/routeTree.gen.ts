@@ -14,8 +14,11 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedProcedimentosRouteImport } from './routes/_authenticated/procedimentos'
 import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticated/clientes'
+import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authenticated/_admin/route'
 import { Route as AuthenticatedAtendimentosIndexRouteImport } from './routes/_authenticated/atendimentos.index'
 import { Route as AuthenticatedAtendimentosNovoRouteImport } from './routes/_authenticated/atendimentos.novo'
+import { Route as AuthenticatedAdminUsuariosRouteImport } from './routes/_authenticated/_admin/usuarios'
+import { Route as AuthenticatedAdminAuditoriaRouteImport } from './routes/_authenticated/_admin/auditoria'
 import { Route as AuthenticatedAtendimentosIdEditarRouteImport } from './routes/_authenticated/atendimentos.$id.editar'
 
 const AuthRoute = AuthRouteImport.update({
@@ -43,6 +46,10 @@ const AuthenticatedClientesRoute = AuthenticatedClientesRouteImport.update({
   path: '/clientes',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAdminRouteRoute = AuthenticatedAdminRouteRouteImport.update({
+  id: '/_admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAtendimentosIndexRoute =
   AuthenticatedAtendimentosIndexRouteImport.update({
     id: '/atendimentos/',
@@ -54,6 +61,18 @@ const AuthenticatedAtendimentosNovoRoute =
     id: '/atendimentos/novo',
     path: '/atendimentos/novo',
     getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAdminUsuariosRoute =
+  AuthenticatedAdminUsuariosRouteImport.update({
+    id: '/usuarios',
+    path: '/usuarios',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminAuditoriaRoute =
+  AuthenticatedAdminAuditoriaRouteImport.update({
+    id: '/auditoria',
+    path: '/auditoria',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
 const AuthenticatedAtendimentosIdEditarRoute =
   AuthenticatedAtendimentosIdEditarRouteImport.update({
@@ -67,15 +86,19 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/clientes': typeof AuthenticatedClientesRoute
   '/procedimentos': typeof AuthenticatedProcedimentosRoute
+  '/auditoria': typeof AuthenticatedAdminAuditoriaRoute
+  '/usuarios': typeof AuthenticatedAdminUsuariosRoute
   '/atendimentos/novo': typeof AuthenticatedAtendimentosNovoRoute
   '/atendimentos/': typeof AuthenticatedAtendimentosIndexRoute
   '/atendimentos/$id/editar': typeof AuthenticatedAtendimentosIdEditarRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
+  '/': typeof AuthenticatedIndexRoute
   '/clientes': typeof AuthenticatedClientesRoute
   '/procedimentos': typeof AuthenticatedProcedimentosRoute
-  '/': typeof AuthenticatedIndexRoute
+  '/auditoria': typeof AuthenticatedAdminAuditoriaRoute
+  '/usuarios': typeof AuthenticatedAdminUsuariosRoute
   '/atendimentos/novo': typeof AuthenticatedAtendimentosNovoRoute
   '/atendimentos': typeof AuthenticatedAtendimentosIndexRoute
   '/atendimentos/$id/editar': typeof AuthenticatedAtendimentosIdEditarRoute
@@ -84,9 +107,12 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/_admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/_authenticated/clientes': typeof AuthenticatedClientesRoute
   '/_authenticated/procedimentos': typeof AuthenticatedProcedimentosRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/_admin/auditoria': typeof AuthenticatedAdminAuditoriaRoute
+  '/_authenticated/_admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
   '/_authenticated/atendimentos/novo': typeof AuthenticatedAtendimentosNovoRoute
   '/_authenticated/atendimentos/': typeof AuthenticatedAtendimentosIndexRoute
   '/_authenticated/atendimentos/$id/editar': typeof AuthenticatedAtendimentosIdEditarRoute
@@ -98,15 +124,19 @@ export interface FileRouteTypes {
     | '/auth'
     | '/clientes'
     | '/procedimentos'
+    | '/auditoria'
+    | '/usuarios'
     | '/atendimentos/novo'
     | '/atendimentos/'
     | '/atendimentos/$id/editar'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
+    | '/'
     | '/clientes'
     | '/procedimentos'
-    | '/'
+    | '/auditoria'
+    | '/usuarios'
     | '/atendimentos/novo'
     | '/atendimentos'
     | '/atendimentos/$id/editar'
@@ -114,9 +144,12 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/_admin'
     | '/_authenticated/clientes'
     | '/_authenticated/procedimentos'
     | '/_authenticated/'
+    | '/_authenticated/_admin/auditoria'
+    | '/_authenticated/_admin/usuarios'
     | '/_authenticated/atendimentos/novo'
     | '/_authenticated/atendimentos/'
     | '/_authenticated/atendimentos/$id/editar'
@@ -164,6 +197,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedClientesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/_admin': {
+      id: '/_authenticated/_admin'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedAdminRouteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/atendimentos/': {
       id: '/_authenticated/atendimentos/'
       path: '/atendimentos'
@@ -178,6 +218,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAtendimentosNovoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/_admin/usuarios': {
+      id: '/_authenticated/_admin/usuarios'
+      path: '/usuarios'
+      fullPath: '/usuarios'
+      preLoaderRoute: typeof AuthenticatedAdminUsuariosRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/_admin/auditoria': {
+      id: '/_authenticated/_admin/auditoria'
+      path: '/auditoria'
+      fullPath: '/auditoria'
+      preLoaderRoute: typeof AuthenticatedAdminAuditoriaRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/atendimentos/$id/editar': {
       id: '/_authenticated/atendimentos/$id/editar'
       path: '/atendimentos/$id/editar'
@@ -188,7 +242,24 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedAdminRouteRouteChildren {
+  AuthenticatedAdminAuditoriaRoute: typeof AuthenticatedAdminAuditoriaRoute
+  AuthenticatedAdminUsuariosRoute: typeof AuthenticatedAdminUsuariosRoute
+}
+
+const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren =
+  {
+    AuthenticatedAdminAuditoriaRoute: AuthenticatedAdminAuditoriaRoute,
+    AuthenticatedAdminUsuariosRoute: AuthenticatedAdminUsuariosRoute,
+  }
+
+const AuthenticatedAdminRouteRouteWithChildren =
+  AuthenticatedAdminRouteRoute._addFileChildren(
+    AuthenticatedAdminRouteRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminRouteRoute: typeof AuthenticatedAdminRouteRouteWithChildren
   AuthenticatedClientesRoute: typeof AuthenticatedClientesRoute
   AuthenticatedProcedimentosRoute: typeof AuthenticatedProcedimentosRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
@@ -198,6 +269,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminRouteRoute: AuthenticatedAdminRouteRouteWithChildren,
   AuthenticatedClientesRoute: AuthenticatedClientesRoute,
   AuthenticatedProcedimentosRoute: AuthenticatedProcedimentosRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
@@ -217,13 +289,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

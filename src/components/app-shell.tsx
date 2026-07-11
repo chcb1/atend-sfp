@@ -1,9 +1,20 @@
 import type { ReactNode } from "react";
 import { Link, useRouter, useLocation } from "@tanstack/react-router";
-import { LayoutDashboard, ClipboardList, Users, LogOut, Wallet, Stethoscope } from "lucide-react";
+import {
+  LayoutDashboard,
+  ClipboardList,
+  Users,
+  LogOut,
+  Wallet,
+  Stethoscope,
+  Shield,
+  ScrollText,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { isCurrentUserAdmin } from "@/lib/admin.functions";
 import { cn } from "@/lib/utils";
 
 const nav = [
@@ -13,10 +24,21 @@ const nav = [
   { to: "/clientes", label: "Clientes", icon: Users },
 ] as const;
 
+const adminNav = [
+  { to: "/usuarios", label: "Usuários", icon: Shield },
+  { to: "/auditoria", label: "Auditoria", icon: ScrollText },
+] as const;
+
 export function AppShell({ children }: { children: ReactNode }) {
   const router = useRouter();
   const location = useLocation();
   const qc = useQueryClient();
+  const checkAdmin = useServerFn(isCurrentUserAdmin);
+  const { data: isAdmin = false } = useQuery({
+    queryKey: ["me", "isAdmin"],
+    queryFn: () => checkAdmin(),
+    staleTime: 60_000,
+  });
 
   async function handleSignOut() {
     await qc.cancelQueries();
@@ -24,6 +46,8 @@ export function AppShell({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
     router.navigate({ to: "/auth", replace: true });
   }
+
+  const items = [...nav, ...(isAdmin ? adminNav : [])];
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -36,7 +60,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <span>Financeiro</span>
           </Link>
           <nav className="flex items-center gap-1">
-            {nav.map((item) => {
+            {items.map((item) => {
               const active =
                 item.to === "/"
                   ? location.pathname === "/"
