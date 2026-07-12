@@ -2,12 +2,20 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
+export type ApprovalStatus = "pending" | "approved" | "rejected";
+
 export type AdminUser = {
   id: string;
   email: string | null;
   created_at: string;
   last_sign_in_at: string | null;
   roles: ("admin" | "user")[];
+  status: ApprovalStatus;
+};
+
+export type MyApprovalInfo = {
+  status: ApprovalStatus;
+  isAdmin: boolean;
 };
 
 async function assertAdmin(context: any) {
