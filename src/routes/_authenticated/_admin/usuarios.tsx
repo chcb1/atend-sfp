@@ -31,7 +31,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Shield, ShieldOff, Trash2, Users } from "lucide-react";
+import { Shield, ShieldOff, Trash2, Users, Check, X, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { formatDateBR } from "@/lib/format";
 
