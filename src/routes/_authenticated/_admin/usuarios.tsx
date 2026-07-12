@@ -7,6 +7,7 @@ import {
   grantRole,
   revokeRole,
   deleteUser,
+  setUserStatus,
   type AdminUser,
 } from "@/lib/admin.functions";
 import { Button } from "@/components/ui/button";
