@@ -104,12 +104,60 @@ function UsersAdmin() {
         </div>
       </div>
 
+      {pending.length > 0 && (
+        <Card className="border-amber-500/50 bg-amber-500/5">
+          <CardContent className="p-4">
+            <div className="mb-3 flex items-center gap-2 text-sm font-medium">
+              <Clock className="h-4 w-4 text-amber-600" />
+              Aguardando aprovação ({pending.length})
+            </div>
+            <div className="space-y-2">
+              {pending.map((u) => (
+                <div
+                  key={u.id}
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-md border bg-background p-3"
+                >
+                  <div>
+                    <div className="font-medium">{u.email ?? "—"}</div>
+                    <div className="text-xs text-muted-foreground">
+                      Cadastrado em {formatDateBR(u.created_at.slice(0, 10))}
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      onClick={() =>
+                        statusMut.mutate({ user_id: u.id, status: "approved" })
+                      }
+                    >
+                      <Check className="mr-1 h-4 w-4" />
+                      Aprovar
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() =>
+                        statusMut.mutate({ user_id: u.id, status: "rejected" })
+                      }
+                    >
+                      <X className="mr-1 h-4 w-4" />
+                      Rejeitar
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Email</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead>Papéis</TableHead>
                 <TableHead>Criado em</TableHead>
                 <TableHead>Último acesso</TableHead>
@@ -119,23 +167,40 @@ function UsersAdmin() {
             <TableBody>
               {isLoading && (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center text-muted-foreground">
+                  <TableCell colSpan={6} className="text-center text-muted-foreground">
                     Carregando...
                   </TableCell>
                 </TableRow>
               )}
               {!isLoading && users.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center text-muted-foreground">
+                  <TableCell colSpan={6} className="text-center text-muted-foreground">
                     Nenhum usuário.
                   </TableCell>
                 </TableRow>
               )}
               {users.map((u) => {
                 const isAdmin = u.roles.includes("admin");
+                const statusVariant =
+                  u.status === "approved"
+                    ? "default"
+                    : u.status === "rejected"
+                      ? "destructive"
+                      : "secondary";
+                const statusLabel =
+                  u.status === "approved"
+                    ? "aprovado"
+                    : u.status === "rejected"
+                      ? "rejeitado"
+                      : "pendente";
                 return (
                   <TableRow key={u.id}>
                     <TableCell className="font-medium">{u.email ?? "—"}</TableCell>
+                    <TableCell>
+                      <Badge variant={statusVariant as any}>
+                        {isAdmin ? "aprovado" : statusLabel}
+                      </Badge>
+                    </TableCell>
                     <TableCell>
                       <div className="flex flex-wrap gap-1">
                         {u.roles.length === 0 && (
@@ -155,7 +220,30 @@ function UsersAdmin() {
                         : "—"}
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
+                      <div className="flex flex-wrap justify-end gap-2">
+                        {!isAdmin && u.status !== "approved" && (
+                          <Button
+                            size="sm"
+                            onClick={() =>
+                              statusMut.mutate({ user_id: u.id, status: "approved" })
+                            }
+                          >
+                            <Check className="mr-1 h-4 w-4" />
+                            Aprovar
+                          </Button>
+                        )}
+                        {!isAdmin && u.status === "approved" && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() =>
+                              statusMut.mutate({ user_id: u.id, status: "rejected" })
+                            }
+                          >
+                            <X className="mr-1 h-4 w-4" />
+                            Rejeitar
+                          </Button>
+                        )}
                         {isAdmin ? (
                           <Button
                             size="sm"
@@ -195,6 +283,7 @@ function UsersAdmin() {
           </Table>
         </CardContent>
       </Card>
+
 
       <AlertDialog open={!!toDelete} onOpenChange={(o) => !o && setToDelete(null)}>
         <AlertDialogContent>
