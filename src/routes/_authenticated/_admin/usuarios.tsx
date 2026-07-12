@@ -47,6 +47,7 @@ function UsersAdmin() {
   const grant = useServerFn(grantRole);
   const revoke = useServerFn(revokeRole);
   const del = useServerFn(deleteUser);
+  const setStatus = useServerFn(setUserStatus);
 
   const { data: users = [], isLoading } = useQuery({
     queryKey: ["admin", "users"],
@@ -55,33 +56,39 @@ function UsersAdmin() {
 
   const [toDelete, setToDelete] = useState<AdminUser | null>(null);
 
+  const invalidate = () => qc.invalidateQueries({ queryKey: ["admin", "users"] });
+
   const grantMut = useMutation({
     mutationFn: (v: { user_id: string; role: "admin" | "user" }) => grant({ data: v }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["admin", "users"] });
-      toast.success("Papel concedido");
-    },
+    onSuccess: () => { invalidate(); toast.success("Papel concedido"); },
     onError: (e: Error) => toast.error(e.message),
   });
 
   const revokeMut = useMutation({
     mutationFn: (v: { user_id: string; role: "admin" | "user" }) => revoke({ data: v }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["admin", "users"] });
-      toast.success("Papel removido");
-    },
+    onSuccess: () => { invalidate(); toast.success("Papel removido"); },
     onError: (e: Error) => toast.error(e.message),
   });
 
   const delMut = useMutation({
     mutationFn: (user_id: string) => del({ data: { user_id } }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["admin", "users"] });
-      toast.success("Usuário excluído");
-      setToDelete(null);
+    onSuccess: () => { invalidate(); toast.success("Usuário excluído"); setToDelete(null); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const statusMut = useMutation({
+    mutationFn: (v: { user_id: string; status: "pending" | "approved" | "rejected" }) =>
+      setStatus({ data: v }),
+    onSuccess: (_r, v) => {
+      invalidate();
+      toast.success(
+        v.status === "approved" ? "Usuário aprovado" : v.status === "rejected" ? "Usuário rejeitado" : "Status atualizado",
+      );
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  const pending = users.filter((u) => u.status === "pending" && !u.roles.includes("admin"));
 
   return (
     <div className="space-y-6">
