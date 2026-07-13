@@ -87,12 +87,9 @@ export const listUsers = createServerFn({ method: "GET" })
 export const getMyApprovalStatus = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<MyApprovalInfo> => {
-    const { data: isAdminData } = await (context.supabase as any).rpc("has_role", {
-      _user_id: context.userId,
-      _role: "admin",
-    });
-    const isAdmin = !!isAdminData;
+    const isAdmin = await userIsAdmin(context.userId);
     if (isAdmin) return { status: "approved", isAdmin: true };
+
 
     const { data, error } = await (context.supabase as any)
       .from("user_status")
