@@ -17,12 +17,13 @@ import { useServerFn } from "@tanstack/react-start";
 import { isCurrentUserAdmin } from "@/lib/admin.functions";
 import { cn } from "@/lib/utils";
 
-const nav = [
-  { to: "/", label: "Dashboard", icon: LayoutDashboard },
+const baseNav = [
   { to: "/atendimentos", label: "Atendimentos", icon: ClipboardList },
   { to: "/procedimentos", label: "Procedimentos", icon: Stethoscope },
   { to: "/clientes", label: "Clientes", icon: Users },
 ] as const;
+
+const dashboardNav = { to: "/", label: "Dashboard", icon: LayoutDashboard } as const;
 
 const adminNav = [
   { to: "/usuarios", label: "Usuários", icon: Shield },
