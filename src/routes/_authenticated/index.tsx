@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -16,6 +16,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import { getDashboardStats } from "@/lib/dashboard.functions";
+import { isCurrentUserAdmin } from "@/lib/admin.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -44,13 +45,27 @@ function rangeToDates(r: Range): { from?: string; to?: string } {
 const PIE_COLORS = ["#2563eb", "#16a34a", "#f59e0b", "#ef4444", "#8b5cf6", "#0ea5e9", "#f97316"];
 
 function Dashboard() {
+  const checkAdmin = useServerFn(isCurrentUserAdmin);
+  const { data: isAdmin, isLoading: adminLoading } = useQuery({
+    queryKey: ["me", "isAdmin"],
+    queryFn: () => checkAdmin(),
+    staleTime: 60_000,
+  });
   const [range, setRange] = useState<Range>("month");
   const dates = useMemo(() => rangeToDates(range), [range]);
   const fetchStats = useServerFn(getDashboardStats);
   const { data, isLoading } = useQuery({
     queryKey: ["dashboard", dates],
     queryFn: () => fetchStats({ data: dates }),
+    enabled: isAdmin === true,
   });
+
+  if (adminLoading) {
+    return <div className="text-sm text-muted-foreground">Carregando...</div>;
+  }
+  if (isAdmin === false) {
+    return <Navigate to="/atendimentos" replace />;
+  }
 
   return (
     <div className="space-y-6">
