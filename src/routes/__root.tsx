@@ -86,8 +86,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Controle de Atendimentos" },
       { name: "twitter:description", content: "Controle de atendimentos: cadastro, dashboard e exportação para Excel." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/9db115d2-1fdd-4ae9-b418-4ef75b25389f/id-preview-072f25f2--a601d6e9-2834-48f3-94e4-1419abd91b24.lovable.app-1783907080456.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/9db115d2-1fdd-4ae9-b418-4ef75b25389f/id-preview-072f25f2--a601d6e9-2834-48f3-94e4-1419abd91b24.lovable.app-1783907080456.png" },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/5b6f42cf-4fd2-4d25-809e-b5100763193c/id-preview-28aafe3e--a601d6e9-2834-48f3-94e4-1419abd91b24.lovable.app-1783907495856.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/5b6f42cf-4fd2-4d25-809e-b5100763193c/id-preview-28aafe3e--a601d6e9-2834-48f3-94e4-1419abd91b24.lovable.app-1783907495856.png" },
     ],
     links: [
       {
