@@ -18,25 +18,29 @@ export type MyApprovalInfo = {
   isAdmin: boolean;
 };
 
+async function userIsAdmin(userId: string): Promise<boolean> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data, error } = await (supabaseAdmin as any)
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId)
+    .eq("role", "admin")
+    .maybeSingle();
+  if (error) return false;
+  return !!data;
+}
+
 async function assertAdmin(context: any) {
-  const { data, error } = await context.supabase.rpc("has_role", {
-    _user_id: context.userId,
-    _role: "admin",
-  });
-  if (error) throw new Error(error.message);
-  if (!data) throw new Error("Forbidden: admin only");
+  const ok = await userIsAdmin(context.userId);
+  if (!ok) throw new Error("Forbidden: admin only");
 }
 
 export const isCurrentUserAdmin = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<boolean> => {
-    const { data, error } = await (context.supabase as any).rpc("has_role", {
-      _user_id: context.userId,
-      _role: "admin",
-    });
-    if (error) return false;
-    return !!data;
+    return userIsAdmin(context.userId);
   });
+
 
 export const listUsers = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -83,12 +87,9 @@ export const listUsers = createServerFn({ method: "GET" })
 export const getMyApprovalStatus = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<MyApprovalInfo> => {
-    const { data: isAdminData } = await (context.supabase as any).rpc("has_role", {
-      _user_id: context.userId,
-      _role: "admin",
-    });
-    const isAdmin = !!isAdminData;
+    const isAdmin = await userIsAdmin(context.userId);
     if (isAdmin) return { status: "approved", isAdmin: true };
+
 
     const { data, error } = await (context.supabase as any)
       .from("user_status")
