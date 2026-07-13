@@ -48,7 +48,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     router.navigate({ to: "/auth", replace: true });
   }
 
-  const items = [...nav, ...(isAdmin ? adminNav : [])];
+  const items = [...(isAdmin ? [dashboardNav] : []), ...baseNav, ...(isAdmin ? adminNav : [])];
 
   return (
     <div className="min-h-screen bg-muted/30">
