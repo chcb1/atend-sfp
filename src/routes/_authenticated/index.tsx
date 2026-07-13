@@ -45,13 +45,27 @@ function rangeToDates(r: Range): { from?: string; to?: string } {
 const PIE_COLORS = ["#2563eb", "#16a34a", "#f59e0b", "#ef4444", "#8b5cf6", "#0ea5e9", "#f97316"];
 
 function Dashboard() {
+  const checkAdmin = useServerFn(isCurrentUserAdmin);
+  const { data: isAdmin, isLoading: adminLoading } = useQuery({
+    queryKey: ["me", "isAdmin"],
+    queryFn: () => checkAdmin(),
+    staleTime: 60_000,
+  });
   const [range, setRange] = useState<Range>("month");
   const dates = useMemo(() => rangeToDates(range), [range]);
   const fetchStats = useServerFn(getDashboardStats);
   const { data, isLoading } = useQuery({
     queryKey: ["dashboard", dates],
     queryFn: () => fetchStats({ data: dates }),
+    enabled: isAdmin === true,
   });
+
+  if (adminLoading) {
+    return <div className="text-sm text-muted-foreground">Carregando...</div>;
+  }
+  if (isAdmin === false) {
+    return <Navigate to="/atendimentos" replace />;
+  }
 
   return (
     <div className="space-y-6">
