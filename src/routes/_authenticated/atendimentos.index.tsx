@@ -86,9 +86,12 @@ function AppointmentsList() {
         <div className="flex gap-2">
           <Button
             variant="outline"
-            onClick={() =>
-              exportAppointmentsToXlsx(rows, `atendimentos-${new Date().toISOString().slice(0, 10)}.xlsx`)
-            }
+            onClick={() => {
+              void exportAppointmentsToXlsx(
+                rows,
+                `atendimentos-${new Date().toISOString().slice(0, 10)}.xlsx`,
+              );
+            }}
             disabled={rows.length === 0}
           >
             <Download className="mr-2 h-4 w-4" /> Exportar Excel
