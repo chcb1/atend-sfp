@@ -1,17 +1,35 @@
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 import type { Appointment } from "./types";
 import { formatDateBR } from "./format";
 
-export function exportAppointmentsToXlsx(rows: Appointment[], filename = "atendimentos.xlsx") {
-  const data = rows.map((r) => ({
-    Data: formatDateBR(r.date),
-    Cliente: r.client_name,
-    Procedimento: r.procedure,
-    "Valor Bruto": Number(r.gross_value),
-    Despesas: Number(r.expenses),
-    "Imposto/Taxa": Number(r.tax),
-    "Valor Líquido": Number(r.net_value),
-  }));
+export async function exportAppointmentsToXlsx(
+  rows: Appointment[],
+  filename = "atendimentos.xlsx",
+) {
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet("Atendimentos");
+
+  ws.columns = [
+    { header: "Data", key: "date", width: 12 },
+    { header: "Cliente", key: "client", width: 24 },
+    { header: "Procedimento", key: "procedure", width: 24 },
+    { header: "Valor Bruto", key: "gross", width: 14 },
+    { header: "Despesas", key: "expenses", width: 12 },
+    { header: "Imposto/Taxa", key: "tax", width: 14 },
+    { header: "Valor Líquido", key: "net", width: 14 },
+  ];
+
+  for (const r of rows) {
+    ws.addRow({
+      date: formatDateBR(r.date),
+      client: r.client_name,
+      procedure: r.procedure,
+      gross: Number(r.gross_value),
+      expenses: Number(r.expenses),
+      tax: Number(r.tax),
+      net: Number(r.net_value),
+    });
+  }
 
   const totals = rows.reduce(
     (acc, r) => {
@@ -24,27 +42,26 @@ export function exportAppointmentsToXlsx(rows: Appointment[], filename = "atendi
     { gross: 0, exp: 0, tax: 0, net: 0 },
   );
 
-  data.push({
-    Data: "TOTAL",
-    Cliente: "",
-    Procedimento: "",
-    "Valor Bruto": totals.gross,
-    Despesas: totals.exp,
-    "Imposto/Taxa": totals.tax,
-    "Valor Líquido": totals.net,
+  ws.addRow({
+    date: "TOTAL",
+    client: "",
+    procedure: "",
+    gross: totals.gross,
+    expenses: totals.exp,
+    tax: totals.tax,
+    net: totals.net,
   });
 
-  const ws = XLSX.utils.json_to_sheet(data);
-  ws["!cols"] = [
-    { wch: 12 },
-    { wch: 24 },
-    { wch: 24 },
-    { wch: 14 },
-    { wch: 12 },
-    { wch: 14 },
-    { wch: 14 },
-  ];
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Atendimentos");
-  XLSX.writeFile(wb, filename);
+  const buffer = await wb.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
