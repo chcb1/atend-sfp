@@ -58,7 +58,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <div className="grid h-8 w-8 place-items-center rounded-md bg-primary text-primary-foreground">
               <Wallet className="h-4 w-4" />
             </div>
-            <span>Financeiro</span>
+            <span>Fisio App</span>
           </Link>
           <nav className="flex items-center gap-1">
             {items.map((item) => {

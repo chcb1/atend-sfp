@@ -152,7 +152,7 @@ function AuthPage() {
           <div className="grid h-12 w-12 place-items-center rounded-lg bg-primary text-primary-foreground">
             <Wallet className="h-6 w-6" />
           </div>
-          <h1 className="text-2xl font-semibold">Financeiro</h1>
+          <h1 className="text-2xl font-semibold">Fisio App</h1>
           <p className="text-sm text-muted-foreground">Controle de atendimentos</p>
         </div>
         <Card>
