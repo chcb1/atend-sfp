@@ -6,7 +6,7 @@ export type AuditLog = {
   id: string;
   user_id: string | null;
   user_email: string | null;
-  action: "INSERT" | "UPDATE" | "DELETE";
+  action: "INSERT" | "UPDATE" | "DELETE" | "LOGIN" | "LOGOUT";
   entity: string;
   entity_id: string | null;
   changes: any;
@@ -16,7 +16,7 @@ export type AuditLog = {
 const filters = z
   .object({
     entity: z.string().optional(),
-    action: z.enum(["INSERT", "UPDATE", "DELETE"]).optional(),
+    action: z.enum(["INSERT", "UPDATE", "DELETE", "LOGIN", "LOGOUT"]).optional(),
     user_email: z.string().optional(),
     limit: z.number().int().min(1).max(500).optional(),
   })

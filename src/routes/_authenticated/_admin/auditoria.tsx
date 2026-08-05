@@ -42,17 +42,21 @@ const ENTITY_LABEL: Record<string, string> = {
   clients: "Cliente",
   procedures: "Procedimento",
   user_roles: "Papel de usuário",
+  auth_session: "Sessão",
 };
 
 const ACTION_LABEL: Record<string, string> = {
   INSERT: "Criação",
   UPDATE: "Alteração",
   DELETE: "Exclusão",
+  LOGIN: "Login",
+  LOGOUT: "Logout",
 };
 
-function actionVariant(a: string): "default" | "secondary" | "destructive" {
+function actionVariant(a: string): "default" | "secondary" | "destructive" | "outline" {
   if (a === "INSERT") return "default";
   if (a === "UPDATE") return "secondary";
+  if (a === "LOGIN" || a === "LOGOUT") return "outline";
   return "destructive";
 }
 
