@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Link, useRouter, useLocation } from "@tanstack/react-router";
 import {
   LayoutDashboard,
@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { isCurrentUserAdmin } from "@/lib/admin.functions";
+import { logSessionEvent } from "@/lib/session-audit.functions";
 import { cn } from "@/lib/utils";
 
 const baseNav = [
@@ -35,6 +36,18 @@ export function AppShell({ children }: { children: ReactNode }) {
   const location = useLocation();
   const qc = useQueryClient();
   const checkAdmin = useServerFn(isCurrentUserAdmin);
+  const logSession = useServerFn(logSessionEvent);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setUserEmail(data.session?.user.email ?? null);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      setUserEmail(session?.user.email ?? null);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
   const { data: isAdmin = false } = useQuery({
     queryKey: ["me", "isAdmin"],
     queryFn: () => checkAdmin(),
@@ -42,6 +55,11 @@ export function AppShell({ children }: { children: ReactNode }) {
   });
 
   async function handleSignOut() {
+    try {
+      await logSession({ data: { action: "LOGOUT" } });
+    } catch {
+      // não bloqueia o logout se o registro falhar
+    }
     await qc.cancelQueries();
     qc.clear();
     await supabase.auth.signOut();
@@ -84,7 +102,12 @@ export function AppShell({ children }: { children: ReactNode }) {
               );
             })}
           </nav>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-3">
+            {userEmail && (
+              <span className="hidden max-w-[220px] truncate text-sm text-muted-foreground sm:inline">
+                {userEmail}
+              </span>
+            )}
             <Button variant="ghost" size="sm" onClick={handleSignOut}>
               <LogOut className="mr-2 h-4 w-4" />
               Sair

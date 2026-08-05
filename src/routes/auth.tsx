@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
+import { useServerFn } from "@tanstack/react-start";
+import { logSessionEvent } from "@/lib/session-audit.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,6 +22,7 @@ type AuthError = { title: string; detail: string; hint?: string };
 
 function AuthPage() {
   const navigate = useNavigate();
+  const logSession = useServerFn(logSessionEvent);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -84,6 +87,11 @@ function AuthPage() {
       setSignInError(err);
       return;
     }
+    try {
+      await logSession({ data: { action: "LOGIN" } });
+    } catch {
+      // registro de auditoria não deve bloquear o login
+    }
     toast.success("Bem-vindo!");
     navigate({ to: "/", replace: true });
   }
@@ -113,6 +121,13 @@ function AuthPage() {
     }
     toast.success("Conta criada! Entrando...");
     const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
+    if (!signInErr) {
+      try {
+        await logSession({ data: { action: "LOGIN" } });
+      } catch {
+        // ignora falha de auditoria
+      }
+    }
     if (!signInErr) navigate({ to: "/", replace: true });
   }
 
@@ -129,6 +144,11 @@ function AuthPage() {
       return;
     }
     if (result.redirected) return;
+    try {
+      await logSession({ data: { action: "LOGIN" } });
+    } catch {
+      // ignora falha de auditoria
+    }
     navigate({ to: "/", replace: true });
   }
 
