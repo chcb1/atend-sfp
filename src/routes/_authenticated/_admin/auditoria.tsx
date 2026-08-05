@@ -106,6 +106,7 @@ function AuditPage() {
                 <SelectItem value="clients">Clientes</SelectItem>
                 <SelectItem value="procedures">Procedimentos</SelectItem>
                 <SelectItem value="user_roles">Papéis</SelectItem>
+                <SelectItem value="auth_session">Sessão (login/logout)</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -118,6 +119,8 @@ function AuditPage() {
                 <SelectItem value="INSERT">Criação</SelectItem>
                 <SelectItem value="UPDATE">Alteração</SelectItem>
                 <SelectItem value="DELETE">Exclusão</SelectItem>
+                <SelectItem value="LOGIN">Login</SelectItem>
+                <SelectItem value="LOGOUT">Logout</SelectItem>
               </SelectContent>
             </Select>
           </div>
