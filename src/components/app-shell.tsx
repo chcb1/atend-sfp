@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { Link, useRouter, useLocation } from "@tanstack/react-router";
 import {
   LayoutDashboard,
@@ -9,6 +9,7 @@ import {
   Stethoscope,
   Shield,
   ScrollText,
+  Clock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,6 +17,15 @@ import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { isCurrentUserAdmin } from "@/lib/admin.functions";
 import { logSessionEvent } from "@/lib/session-audit.functions";
+import { useIdleTimeout } from "@/hooks/use-idle-timeout";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
 const baseNav = [
@@ -38,35 +48,62 @@ export function AppShell({ children }: { children: ReactNode }) {
   const checkAdmin = useServerFn(isCurrentUserAdmin);
   const logSession = useServerFn(logSessionEvent);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [showWarning, setShowWarning] = useState(false);
+  const signingOut = useRef(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setUserEmail(data.session?.user.email ?? null);
     });
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       setUserEmail(session?.user.email ?? null);
+      if (event === "SIGNED_IN") {
+        // registro centralizado de login (cobre senha, cadastro e OAuth com redirect)
+        void logSession({ data: { action: "LOGIN" } }).catch(() => {});
+      }
     });
     return () => sub.subscription.unsubscribe();
-  }, []);
+  }, [logSession]);
   const { data: isAdmin = false } = useQuery({
     queryKey: ["me", "isAdmin"],
     queryFn: () => checkAdmin(),
     staleTime: 60_000,
   });
 
-  async function handleSignOut() {
-    try {
-      await logSession({ data: { action: "LOGOUT" } });
-    } catch {
-      // não bloqueia o logout se o registro falhar
-    }
-    await qc.cancelQueries();
-    qc.clear();
-    await supabase.auth.signOut();
-    router.navigate({ to: "/auth", replace: true });
+  const doSignOut = useCallback(
+    async (reason?: string) => {
+      if (signingOut.current) return;
+      signingOut.current = true;
+      try {
+        await logSession({ data: { action: "LOGOUT", ...(reason ? { reason } : {}) } });
+      } catch {
+        // não bloqueia o logout se o registro falhar
+      }
+      await qc.cancelQueries();
+      qc.clear();
+      await supabase.auth.signOut();
+      router.navigate({ to: "/auth", replace: true });
+    },
+    [logSession, qc, router],
+  );
+
+  const { resetActivity } = useIdleTimeout({
+    timeoutMs: 10 * 60 * 1000,
+    warningMs: 60 * 1000,
+    onWarn: () => setShowWarning(true),
+    onTimeout: () => {
+      setShowWarning(false);
+      void doSignOut("Sessão encerrada por inatividade (10 minutos)");
+    },
+  });
+
+  function stayConnected() {
+    setShowWarning(false);
+    resetActivity(true);
   }
 
   const items = [...(isAdmin ? [dashboardNav] : []), ...baseNav, ...(isAdmin ? adminNav : [])];
+
 
   return (
     <div className="min-h-screen bg-muted/30">
