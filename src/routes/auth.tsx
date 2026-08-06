@@ -87,11 +87,6 @@ function AuthPage() {
       setSignInError(err);
       return;
     }
-    try {
-      await logSession({ data: { action: "LOGIN" } });
-    } catch {
-      // registro de auditoria não deve bloquear o login
-    }
     toast.success("Bem-vindo!");
     navigate({ to: "/", replace: true });
   }
@@ -121,13 +116,6 @@ function AuthPage() {
     }
     toast.success("Conta criada! Entrando...");
     const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
-    if (!signInErr) {
-      try {
-        await logSession({ data: { action: "LOGIN" } });
-      } catch {
-        // ignora falha de auditoria
-      }
-    }
     if (!signInErr) navigate({ to: "/", replace: true });
   }
 
@@ -144,11 +132,6 @@ function AuthPage() {
       return;
     }
     if (result.redirected) return;
-    try {
-      await logSession({ data: { action: "LOGIN" } });
-    } catch {
-      // ignora falha de auditoria
-    }
     navigate({ to: "/", replace: true });
   }
 
