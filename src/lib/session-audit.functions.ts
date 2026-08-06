@@ -4,6 +4,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const input = z.object({
   action: z.enum(["LOGIN", "LOGOUT"]),
+  reason: z.string().max(200).optional(),
 });
 
 export const logSessionEvent = createServerFn({ method: "POST" })
@@ -23,7 +24,7 @@ export const logSessionEvent = createServerFn({ method: "POST" })
       action: data.action,
       entity: "auth_session",
       entity_id: null,
-      changes: { at: new Date().toISOString() },
+      changes: { at: new Date().toISOString(), ...(data.reason ? { reason: data.reason } : {}) },
     });
     if (error) throw new Error(error.message);
     return { ok: true };
