@@ -145,7 +145,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 {userEmail}
               </span>
             )}
-            <Button variant="ghost" size="sm" onClick={handleSignOut}>
+            <Button variant="ghost" size="sm" onClick={() => void doSignOut()}>
               <LogOut className="mr-2 h-4 w-4" />
               Sair
             </Button>
@@ -153,6 +153,26 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </header>
       <main className="mx-auto max-w-7xl px-4 py-8">{children}</main>
+
+      <Dialog open={showWarning} onOpenChange={(o) => !o && stayConnected()}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Clock className="h-5 w-5 text-primary" />
+              Sessão prestes a expirar
+            </DialogTitle>
+            <DialogDescription>
+              Sua sessão vai expirar em 1 minuto por inatividade.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => void doSignOut()}>
+              Sair agora
+            </Button>
+            <Button onClick={stayConnected}>Continuar conectado</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
