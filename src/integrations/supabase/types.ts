@@ -20,6 +20,7 @@ export type Database = {
           client_name: string
           created_at: string
           date: string
+          duration_minutes: number
           expenses: number
           gross_value: number
           id: string
@@ -27,6 +28,8 @@ export type Database = {
           notes: string | null
           procedure: string
           procedure_id: string | null
+          scheduled_at: string | null
+          status: Database["public"]["Enums"]["appointment_status"]
           tax: number
           updated_at: string
           user_id: string
@@ -36,6 +39,7 @@ export type Database = {
           client_name: string
           created_at?: string
           date: string
+          duration_minutes?: number
           expenses?: number
           gross_value?: number
           id?: string
@@ -43,6 +47,8 @@ export type Database = {
           notes?: string | null
           procedure: string
           procedure_id?: string | null
+          scheduled_at?: string | null
+          status?: Database["public"]["Enums"]["appointment_status"]
           tax?: number
           updated_at?: string
           user_id: string
@@ -52,6 +58,7 @@ export type Database = {
           client_name?: string
           created_at?: string
           date?: string
+          duration_minutes?: number
           expenses?: number
           gross_value?: number
           id?: string
@@ -59,6 +66,8 @@ export type Database = {
           notes?: string | null
           procedure?: string
           procedure_id?: string | null
+          scheduled_at?: string | null
+          status?: Database["public"]["Enums"]["appointment_status"]
           tax?: number
           updated_at?: string
           user_id?: string
@@ -233,6 +242,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
+      appointment_status: "agendado" | "concluido" | "cancelado"
       approval_status: "pending" | "approved" | "rejected"
     }
     CompositeTypes: {
@@ -362,6 +372,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      appointment_status: ["agendado", "concluido", "cancelado"],
       approval_status: ["pending", "approved", "rejected"],
     },
   },
