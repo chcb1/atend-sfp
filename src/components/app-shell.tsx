@@ -29,6 +29,7 @@ import {
 import { cn } from "@/lib/utils";
 
 const baseNav = [
+  { to: "/agenda", label: "Agenda", icon: CalendarDays },
   { to: "/atendimentos", label: "Atendimentos", icon: ClipboardList },
   { to: "/procedimentos", label: "Procedimentos", icon: Stethoscope },
   { to: "/clientes", label: "Clientes", icon: Users },
