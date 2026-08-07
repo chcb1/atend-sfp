@@ -26,6 +26,8 @@ export const getDashboardStats = createServerFn({ method: "GET" })
     let q = (context.supabase as any)
       .from("appointments")
       .select("*")
+      // só atendimentos realizados entram no painel consolidado
+      .eq("status", "concluido")
       .order("date", { ascending: false });
     if (data?.from) q = q.gte("date", data.from);
     if (data?.to) q = q.lte("date", data.to);

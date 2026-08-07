@@ -20,10 +20,15 @@ export type Procedure = {
 };
 
 
+export type AppointmentStatus = "agendado" | "concluido" | "cancelado";
+
 export type Appointment = {
   id: string;
   user_id: string;
   date: string; // YYYY-MM-DD
+  status: AppointmentStatus;
+  scheduled_at: string | null;
+  duration_minutes: number;
   procedure_id: string | null;
   client_id: string | null;
   client_name: string;
