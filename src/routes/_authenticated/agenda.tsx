@@ -7,6 +7,7 @@ import {
   createScheduledAppointment,
   updateScheduledAppointment,
   cancelAppointment,
+  completeAppointment,
 } from "@/lib/schedule.functions";
 import { listClients } from "@/lib/clients.functions";
 import { listProcedures } from "@/lib/procedures.functions";
@@ -49,6 +50,7 @@ import {
   Plus,
   Pencil,
   Ban,
+  CheckCircle2,
   AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -169,6 +171,7 @@ function AgendaPage() {
   const create = useServerFn(createScheduledAppointment);
   const update = useServerFn(updateScheduledAppointment);
   const cancel = useServerFn(cancelAppointment);
+  const complete = useServerFn(completeAppointment);
 
   const [view, setView] = useState<"dia" | "semana">("semana");
   const [anchor, setAnchor] = useState(() => toISODate(new Date()));
@@ -209,6 +212,7 @@ function AgendaPage() {
   const [form, setForm] = useState<FormState>(() => emptyForm(toISODate(new Date())));
   const [formError, setFormError] = useState<string | null>(null);
   const [cancelTarget, setCancelTarget] = useState<Appointment | null>(null);
+  const [completeTarget, setCompleteTarget] = useState<Appointment | null>(null);
 
   function openNew(date?: Date) {
     setFormError(null);
@@ -282,6 +286,20 @@ function AgendaPage() {
     },
     onError: (err: unknown) => {
       toast.error(err instanceof Error ? err.message : "Não foi possível cancelar");
+    },
+  });
+
+  const completing = useMutation({
+    mutationFn: (id: string) => complete({ data: { id } }),
+    onSuccess: () => {
+      toast.success("Atendimento concluído");
+      setCompleteTarget(null);
+      void qc.invalidateQueries({ queryKey: ["schedule"] });
+      void qc.invalidateQueries({ queryKey: ["appointments"] });
+      void qc.invalidateQueries({ queryKey: ["dashboard"] });
+    },
+    onError: (err: unknown) => {
+      toast.error(err instanceof Error ? err.message : "Não foi possível concluir");
     },
   });
 
@@ -413,6 +431,17 @@ function AgendaPage() {
                           >
                             <Pencil className="h-3.5 w-3.5" />
                           </Button>
+                          {a.status === "agendado" && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6"
+                              onClick={() => setCompleteTarget(a)}
+                              aria-label="Concluir"
+                            >
+                              <CheckCircle2 className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
                           {a.status === "agendado" && (
                             <Button
                               variant="ghost"
@@ -621,6 +650,28 @@ function AgendaPage() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog
+        open={!!completeTarget}
+        onOpenChange={(o) => !o && setCompleteTarget(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Marcar como concluído?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esse valor passará a contar no dashboard consolidado.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Voltar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => completeTarget && completing.mutate(completeTarget.id)}
+            >
+              Confirmar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog
         open={!!cancelTarget}
