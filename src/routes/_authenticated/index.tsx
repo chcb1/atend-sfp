@@ -60,6 +60,12 @@ function Dashboard() {
     queryFn: () => fetchStats({ data: dates }),
     enabled: isAdmin === true,
   });
+  const fetchForecast = useServerFn(getForecastStats);
+  const { data: forecast } = useQuery({
+    queryKey: ["dashboard", "forecast"],
+    queryFn: () => fetchForecast(),
+    enabled: isAdmin === true,
+  });
 
   if (adminLoading) {
     return <div className="text-sm text-muted-foreground">Carregando...</div>;
