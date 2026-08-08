@@ -102,6 +102,20 @@ export const updateScheduledAppointment = createServerFn({ method: "POST" })
     return row as Appointment;
   });
 
+export const completeAppointment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((raw) => z.object({ id: z.string().uuid() }).parse(raw))
+  .handler(async ({ data, context }): Promise<Appointment> => {
+    const { data: row, error } = await (context.supabase as any)
+      .from("appointments")
+      .update({ status: "concluido" })
+      .eq("id", data.id)
+      .select("*")
+      .single();
+    if (error) throw toClientError(error.message);
+    return row as Appointment;
+  });
+
 export const cancelAppointment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((raw) => z.object({ id: z.string().uuid() }).parse(raw))
