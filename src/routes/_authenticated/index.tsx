@@ -341,3 +341,26 @@ function EmptyChart() {
     </div>
   );
 }
+
+function formatDateTimeBR(iso: string) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  return d.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+}
+
+function ForecastCard({ title, w }: { title: string; w?: { gross: number; net: number; count: number } }) {
+  return (
+    <Card className="border-amber-400/60 bg-background">
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{title}</span>
+          <span className="text-xs text-muted-foreground">{w ? `${w.count} agendamento(s)` : "—"}</span>
+        </div>
+        <div className="mt-2 text-2xl font-semibold tabular-nums text-amber-700 dark:text-amber-400">
+          {brl(w?.net ?? 0)}
+        </div>
+        <div className="mt-1 text-xs text-muted-foreground">Bruto esperado: {brl(w?.gross ?? 0)}</div>
+      </CardContent>
+    </Card>
+  );
+}
