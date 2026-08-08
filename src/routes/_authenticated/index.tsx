@@ -15,13 +15,14 @@ import {
   Legend,
   CartesianGrid,
 } from "recharts";
-import { getDashboardStats } from "@/lib/dashboard.functions";
+import { getDashboardStats, getForecastStats } from "@/lib/dashboard.functions";
 import { isCurrentUserAdmin } from "@/lib/admin.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { brl, formatDateBR } from "@/lib/format";
-import { TrendingUp, Receipt, Percent, DollarSign, Plus, ArrowRight } from "lucide-react";
+import { TrendingUp, Receipt, Percent, DollarSign, Plus, ArrowRight, CalendarClock } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/")({
   component: Dashboard,
