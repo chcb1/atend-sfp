@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import type { Appointment, DashboardStats } from "./types";
+import type { Appointment, DashboardStats, ForecastStats, ForecastWindow } from "./types";
 
 const filters = z
   .object({
@@ -94,5 +94,58 @@ export const getDashboardStats = createServerFn({ method: "GET" })
       byProcedure,
       topClients,
       recent: list.slice(0, 5),
+    };
+  });
+
+export const getForecastStats = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<ForecastStats> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: roleRow } = await (supabaseAdmin as any)
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", context.userId)
+      .eq("role", "admin")
+      .maybeSingle();
+    if (!roleRow) throw new Error("Forbidden: admin only");
+
+    const now = new Date();
+    const in30 = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+    const in7 = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+    const { data: rows, error } = await (context.supabase as any)
+      .from("appointments")
+      .select("*")
+      .eq("status", "agendado")
+      .gte("scheduled_at", now.toISOString())
+      .lte("scheduled_at", in30.toISOString())
+      .order("scheduled_at", { ascending: true });
+    if (error) throw new Error(error.message);
+    const list = (rows ?? []) as Appointment[];
+
+    const sum = (items: Appointment[]): ForecastWindow =>
+      items.reduce(
+        (acc, r) => {
+          acc.gross += Number(r.gross_value);
+          acc.net += Number(r.net_value);
+          acc.count += 1;
+          return acc;
+        },
+        { gross: 0, net: 0, count: 0 },
+      );
+
+    const within7 = list.filter((r) => r.scheduled_at && new Date(r.scheduled_at) <= in7);
+
+    return {
+      next7: sum(within7),
+      next30: sum(list),
+      upcoming: list.slice(0, 5).map((r) => ({
+        id: r.id,
+        scheduled_at: r.scheduled_at ?? "",
+        client_name: r.client_name,
+        procedure: r.procedure,
+        gross_value: Number(r.gross_value),
+        net_value: Number(r.net_value),
+      })),
     };
   });

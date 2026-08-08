@@ -15,13 +15,14 @@ import {
   Legend,
   CartesianGrid,
 } from "recharts";
-import { getDashboardStats } from "@/lib/dashboard.functions";
+import { getDashboardStats, getForecastStats } from "@/lib/dashboard.functions";
 import { isCurrentUserAdmin } from "@/lib/admin.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { brl, formatDateBR } from "@/lib/format";
-import { TrendingUp, Receipt, Percent, DollarSign, Plus, ArrowRight } from "lucide-react";
+import { TrendingUp, Receipt, Percent, DollarSign, Plus, ArrowRight, CalendarClock } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/")({
   component: Dashboard,
@@ -57,6 +58,12 @@ function Dashboard() {
   const { data, isLoading } = useQuery({
     queryKey: ["dashboard", dates],
     queryFn: () => fetchStats({ data: dates }),
+    enabled: isAdmin === true,
+  });
+  const fetchForecast = useServerFn(getForecastStats);
+  const { data: forecast } = useQuery({
+    queryKey: ["dashboard", "forecast"],
+    queryFn: () => fetchForecast(),
     enabled: isAdmin === true,
   });
 
@@ -134,6 +141,49 @@ function Dashboard() {
             <KpiCard label="Ticket médio (líquido)" value={brl(data.averageTicket)} tone="muted" />
             <KpiCard label="Clientes ativos" value={String(data.activeClients)} tone="muted" />
           </div>
+
+          <section className="rounded-lg border-2 border-dashed border-amber-400/70 bg-amber-50/40 p-4 dark:bg-amber-950/10">
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+              <CalendarClock className="h-4 w-4 text-amber-600" />
+              <h2 className="text-lg font-semibold">Provisão futura (não realizado)</h2>
+              <Badge variant="outline" className="border-amber-500 text-amber-700 dark:text-amber-400">
+                Estimativa
+              </Badge>
+              <p className="w-full text-xs text-muted-foreground">
+                Valores esperados de atendimentos com status "agendado" ainda não realizados — não entram nos números
+                consolidados acima.
+              </p>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <ForecastCard title="Próximos 7 dias" w={forecast?.next7} />
+              <ForecastCard title="Próximos 30 dias" w={forecast?.next30} />
+            </div>
+
+            <div className="mt-4">
+              <h3 className="mb-2 text-sm font-medium">Próximos agendamentos</h3>
+              {!forecast || forecast.upcoming.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Nenhum agendamento futuro.</p>
+              ) : (
+                <ul className="divide-y rounded-md border bg-background">
+                  {forecast.upcoming.map((u) => (
+                    <li key={u.id} className="flex items-center justify-between px-3 py-2 text-sm">
+                      <div>
+                        <div className="font-medium">{u.client_name}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {formatDateTimeBR(u.scheduled_at)} · {u.procedure}
+                        </div>
+                      </div>
+                      <div className="text-right tabular-nums">
+                        <div className="font-semibold">{brl(u.gross_value)}</div>
+                        <div className="text-xs text-muted-foreground">líq. {brl(u.net_value)}</div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </section>
 
           <div className="grid gap-4 lg:grid-cols-3">
             <Card className="lg:col-span-2">
@@ -289,5 +339,28 @@ function EmptyChart() {
     <div className="grid h-[280px] place-items-center text-sm text-muted-foreground">
       Sem dados no período.
     </div>
+  );
+}
+
+function formatDateTimeBR(iso: string) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  return d.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+}
+
+function ForecastCard({ title, w }: { title: string; w?: { gross: number; net: number; count: number } }) {
+  return (
+    <Card className="border-amber-400/60 bg-background">
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{title}</span>
+          <span className="text-xs text-muted-foreground">{w ? `${w.count} agendamento(s)` : "—"}</span>
+        </div>
+        <div className="mt-2 text-2xl font-semibold tabular-nums text-amber-700 dark:text-amber-400">
+          {brl(w?.net ?? 0)}
+        </div>
+        <div className="mt-1 text-xs text-muted-foreground">Bruto esperado: {brl(w?.gross ?? 0)}</div>
+      </CardContent>
+    </Card>
   );
 }
