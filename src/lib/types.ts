@@ -55,3 +55,22 @@ export type DashboardStats = {
   topClients: { client: string; net: number; count: number }[];
   recent: Appointment[];
 };
+
+export type ForecastWindow = {
+  gross: number;
+  net: number;
+  count: number;
+};
+
+export type ForecastStats = {
+  next7: ForecastWindow;
+  next30: ForecastWindow;
+  upcoming: {
+    id: string;
+    scheduled_at: string;
+    client_name: string;
+    procedure: string;
+    gross_value: number;
+    net_value: number;
+  }[];
+};
