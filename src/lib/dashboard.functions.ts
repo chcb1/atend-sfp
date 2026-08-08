@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import type { Appointment, DashboardStats } from "./types";
+import type { Appointment, DashboardStats, ForecastStats, ForecastWindow } from "./types";
 
 const filters = z
   .object({
