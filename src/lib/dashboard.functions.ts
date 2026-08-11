@@ -82,10 +82,24 @@ export const getDashboardStats = createServerFn({ method: "GET" })
       const month = parts.find((p) => p.type === "month")!.value;
       return `${year}-${month}`;
     };
-    const startMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const endMonth = new Date(now.getFullYear(), now.getMonth() + 3, 1);
+    const saoPauloOffsetMillis = (d: Date) => {
+      const utc = new Date(d.toLocaleString("en-US", { timeZone: "UTC" }));
+      const sp = new Date(d.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+      return utc.getTime() - sp.getTime();
+    };
+    const startOfMonthInSaoPaulo = (year: number, month: number) => {
+      const t = Date.UTC(year, month - 1, 1);
+      return new Date(t + saoPauloOffsetMillis(new Date(t)));
+    };
+
+    const anchorParts = saoPauloMonthKey(now).split("-").map(Number);
+    const anchorYear = anchorParts[0]!;
+    const anchorMonth = anchorParts[1]!;
+
+    const startMonth = startOfMonthInSaoPaulo(anchorYear, anchorMonth);
+    const endMonth = startOfMonthInSaoPaulo(anchorYear, anchorMonth + 3);
     const futureMonths = [0, 1, 2].map((i) =>
-      saoPauloMonthKey(new Date(now.getFullYear(), now.getMonth() + i, 1)),
+      saoPauloMonthKey(startOfMonthInSaoPaulo(anchorYear, anchorMonth + i)),
     );
 
     const { data: schedRows } = await (context.supabase as any)
