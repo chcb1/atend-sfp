@@ -71,12 +71,21 @@ export const getDashboardStats = createServerFn({ method: "GET" })
 
     // Provisão futura: mês atual + 2 meses seguintes, independente do filtro
     const now = new Date();
+    const saoPauloMonthKey = (d: Date) => {
+      const fmt = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "America/Sao_Paulo",
+        year: "numeric",
+        month: "2-digit",
+      });
+      const parts = fmt.formatToParts(d);
+      const year = parts.find((p) => p.type === "year")!.value;
+      const month = parts.find((p) => p.type === "month")!.value;
+      return `${year}-${month}`;
+    };
     const startMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const endMonth = new Date(now.getFullYear(), now.getMonth() + 3, 1);
-    const monthKey = (d: Date) =>
-      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
     const futureMonths = [0, 1, 2].map((i) =>
-      monthKey(new Date(now.getFullYear(), now.getMonth() + i, 1)),
+      saoPauloMonthKey(new Date(now.getFullYear(), now.getMonth() + i, 1)),
     );
 
     const { data: schedRows } = await (context.supabase as any)
@@ -89,7 +98,7 @@ export const getDashboardStats = createServerFn({ method: "GET" })
     const provMap = new Map<string, number>(futureMonths.map((m) => [m, 0]));
     for (const r of (schedRows ?? []) as { net_value: number; scheduled_at: string | null }[]) {
       if (!r.scheduled_at) continue;
-      const k = monthKey(new Date(r.scheduled_at));
+      const k = saoPauloMonthKey(new Date(r.scheduled_at));
       if (provMap.has(k)) provMap.set(k, (provMap.get(k) ?? 0) + Number(r.net_value));
     }
 
