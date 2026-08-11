@@ -69,9 +69,39 @@ export const getDashboardStats = createServerFn({ method: "GET" })
       byClientMap.set(r.client_name, c);
     }
 
-    const byMonth = Array.from(byMonthMap.entries())
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([month, v]) => ({ month, ...v }));
+    // Provisão futura: mês atual + 2 meses seguintes, independente do filtro
+    const now = new Date();
+    const startMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endMonth = new Date(now.getFullYear(), now.getMonth() + 3, 1);
+    const monthKey = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    const futureMonths = [0, 1, 2].map((i) =>
+      monthKey(new Date(now.getFullYear(), now.getMonth() + i, 1)),
+    );
+
+    const { data: schedRows } = await (context.supabase as any)
+      .from("appointments")
+      .select("net_value, scheduled_at")
+      .eq("status", "agendado")
+      .gte("scheduled_at", startMonth.toISOString())
+      .lt("scheduled_at", endMonth.toISOString());
+
+    const provMap = new Map<string, number>(futureMonths.map((m) => [m, 0]));
+    for (const r of (schedRows ?? []) as { net_value: number; scheduled_at: string | null }[]) {
+      if (!r.scheduled_at) continue;
+      const k = monthKey(new Date(r.scheduled_at));
+      if (provMap.has(k)) provMap.set(k, (provMap.get(k) ?? 0) + Number(r.net_value));
+    }
+
+    const monthKeys = new Set<string>([...byMonthMap.keys(), ...futureMonths]);
+    const byMonth = Array.from(monthKeys)
+      .sort((a, b) => a.localeCompare(b))
+      .map((month) => ({
+        month,
+        net: byMonthMap.get(month)?.net ?? 0,
+        gross: byMonthMap.get(month)?.gross ?? 0,
+        provisionedNet: provMap.get(month) ?? 0,
+      }));
 
     const byProcedure = Array.from(byProcMap.entries())
       .map(([procedure, net]) => ({ procedure, net }))

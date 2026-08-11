@@ -50,7 +50,7 @@ export type DashboardStats = {
   count: number;
   averageTicket: number;
   activeClients: number;
-  byMonth: { month: string; net: number; gross: number }[];
+  byMonth: { month: string; net: number; gross: number; provisionedNet?: number }[];
   byProcedure: { procedure: string; net: number }[];
   topClients: { client: string; net: number; count: number }[];
   recent: Appointment[];
