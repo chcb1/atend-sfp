@@ -98,7 +98,7 @@ export const getDashboardStats = createServerFn({ method: "GET" })
     const provMap = new Map<string, number>(futureMonths.map((m) => [m, 0]));
     for (const r of (schedRows ?? []) as { net_value: number; scheduled_at: string | null }[]) {
       if (!r.scheduled_at) continue;
-      const k = monthKey(new Date(r.scheduled_at));
+      const k = saoPauloMonthKey(new Date(r.scheduled_at));
       if (provMap.has(k)) provMap.set(k, (provMap.get(k) ?? 0) + Number(r.net_value));
     }
 
