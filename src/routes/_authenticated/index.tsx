@@ -136,13 +136,116 @@ function Dashboard() {
             />
           </div>
 
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-4">
             <KpiCard label="Atendimentos" value={String(data.count)} tone="muted" />
-            <KpiCard label="Ticket médio (líquido)" value={brl(data.averageTicket)} tone="muted" />
             <KpiCard label="Clientes ativos" value={String(data.activeClients)} tone="muted" />
+            <KpiCard label="Ticket médio (líquido)" value={brl(data.averageTicket)} tone="muted" />
+            <Card className="border-amber-400/60">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Provisão (30 dias)
+                  </span>
+                  <CalendarClock className="h-4 w-4 text-amber-600" />
+                </div>
+                <div className="mt-2 text-2xl font-semibold tabular-nums text-amber-700 dark:text-amber-400">
+                  {brl(forecast?.next30.gross ?? 0)}
+                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    document.getElementById("provisao-futura")?.scrollIntoView({ behavior: "smooth", block: "start" })
+                  }
+                  className="mt-1 text-xs text-amber-700 underline underline-offset-2 hover:opacity-80 dark:text-amber-400"
+                >
+                  Ver detalhes da provisão
+                </button>
+              </CardContent>
+            </Card>
           </div>
 
-          <section className="rounded-lg border-2 border-dashed border-amber-400/70 bg-amber-50/40 p-4 dark:bg-amber-950/10">
+          <div className="grid gap-4 lg:grid-cols-3">
+            <Card className="lg:col-span-2">
+              <CardHeader>
+                <CardTitle>Lucro Líquido por mês</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {data.byMonth.length === 0 ? (
+                  <EmptyChart />
+                ) : (
+                  <ResponsiveContainer width="100%" height={280}>
+                    <BarChart data={data.byMonth}>
+                      <defs>
+                        <pattern id="provPattern" patternUnits="userSpaceOnUse" width={6} height={6}>
+                          <rect width="6" height="6" fill="#2563eb" fillOpacity={0.18} />
+                          <path d="M0,6 l6,-6 M-1.5,1.5 l3,-3 M4.5,7.5 l3,-3" stroke="#2563eb" strokeWidth={1.4} />
+                        </pattern>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-border" />
+                      <XAxis dataKey="month" tickFormatter={(v) => v.slice(5) + "/" + v.slice(2, 4)} fontSize={12} />
+                      <YAxis tickFormatter={(v) => `R$${v / 1000}k`} fontSize={12} />
+                      <Tooltip
+                        formatter={(v: number, name: string) => [
+                          brl(v),
+                          name === "net" ? "Líquido realizado" : "Provisão estimada",
+                        ]}
+                        labelFormatter={(l) => `Mês: ${l}`}
+                      />
+                      <Legend
+                        wrapperStyle={{ fontSize: 12 }}
+                        formatter={(value: string) => (value === "net" ? "Líquido realizado" : "Provisão estimada")}
+                      />
+                      <Bar dataKey="net" stackId="m" fill="#2563eb" name="net" radius={[0, 0, 0, 0]} />
+                      <Bar
+                        dataKey="provisionedNet"
+                        stackId="m"
+                        fill="url(#provPattern)"
+                        fillOpacity={0.45}
+                        stroke="#2563eb"
+                        strokeOpacity={0.5}
+                        strokeDasharray="3 2"
+                        name="provisionedNet"
+                        radius={[4, 4, 0, 0]}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Por procedimento</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {data.byProcedure.length === 0 ? (
+                  <EmptyChart />
+                ) : (
+                  <ResponsiveContainer width="100%" height={280}>
+                    <PieChart>
+                      <Pie
+                        data={data.byProcedure}
+                        dataKey="net"
+                        nameKey="procedure"
+                        innerRadius={50}
+                        outerRadius={90}
+                      >
+                        {data.byProcedure.map((_, i) => (
+                          <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(v: number) => brl(v)} />
+                      <Legend wrapperStyle={{ fontSize: 12 }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          <section
+            id="provisao-futura"
+            className="scroll-mt-20 rounded-lg border-2 border-dashed border-amber-400/70 bg-amber-50/40 p-4 dark:bg-amber-950/10"
+          >
             <div className="mb-4 flex flex-wrap items-center gap-2">
               <CalendarClock className="h-4 w-4 text-amber-600" />
               <h2 className="text-lg font-semibold">Provisão futura (não realizado)</h2>
@@ -185,56 +288,6 @@ function Dashboard() {
             </div>
           </section>
 
-          <div className="grid gap-4 lg:grid-cols-3">
-            <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle>Lucro Líquido por mês</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {data.byMonth.length === 0 ? (
-                  <EmptyChart />
-                ) : (
-                  <ResponsiveContainer width="100%" height={280}>
-                    <BarChart data={data.byMonth}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-border" />
-                      <XAxis dataKey="month" tickFormatter={(v) => v.slice(5) + "/" + v.slice(2, 4)} fontSize={12} />
-                      <YAxis tickFormatter={(v) => `R$${v / 1000}k`} fontSize={12} />
-                      <Tooltip formatter={(v: number) => brl(v)} labelFormatter={(l) => `Mês: ${l}`} />
-                      <Bar dataKey="net" fill="#2563eb" radius={[4, 4, 0, 0]} name="Líquido" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                )}
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>Por procedimento</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {data.byProcedure.length === 0 ? (
-                  <EmptyChart />
-                ) : (
-                  <ResponsiveContainer width="100%" height={280}>
-                    <PieChart>
-                      <Pie
-                        data={data.byProcedure}
-                        dataKey="net"
-                        nameKey="procedure"
-                        innerRadius={50}
-                        outerRadius={90}
-                      >
-                        {data.byProcedure.map((_, i) => (
-                          <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip formatter={(v: number) => brl(v)} />
-                      <Legend wrapperStyle={{ fontSize: 12 }} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                )}
-              </CardContent>
-            </Card>
-          </div>
 
           <div className="grid gap-4 lg:grid-cols-2">
             <Card>
