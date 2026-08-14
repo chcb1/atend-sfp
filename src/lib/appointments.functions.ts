@@ -122,7 +122,7 @@ export const updateAppointment = createServerFn({ method: "POST" })
       .from("appointments")
       .update({
         date: rest.date,
-        status: current?.status === "cancelado" ? "cancelado" : "concluido",
+        status: current?.status ?? "concluido",
         scheduled_at: scheduledAt,
         duration_minutes: duration,
         client_id: rest.client_id || null,

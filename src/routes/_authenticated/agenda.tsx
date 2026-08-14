@@ -133,6 +133,10 @@ const statusLabels: Record<AppointmentStatus, string> = {
   cancelado: "Cancelado",
 };
 
+type ViewMode = "dia" | "semana" | "mes";
+
+const monthLabel = new Intl.DateTimeFormat("pt-BR", { month: "long", year: "numeric" });
+
 type FormState = {
   id: string | null;
   client_id: string;
@@ -173,16 +177,25 @@ function AgendaPage() {
   const cancel = useServerFn(cancelAppointment);
   const complete = useServerFn(completeAppointment);
 
-  const [view, setView] = useState<"dia" | "semana">("semana");
+  const [view, setView] = useState<ViewMode>("semana");
   const [anchor, setAnchor] = useState(() => toISODate(new Date()));
   const [showCancelled, setShowCancelled] = useState(true);
 
   const days = useMemo(() => {
     const base = fromISODate(anchor);
     if (view === "dia") return [base];
+    if (view === "mes") {
+      const first = new Date(base.getFullYear(), base.getMonth(), 1);
+      const last = new Date(base.getFullYear(), base.getMonth() + 1, 0);
+      const start = startOfWeek(first);
+      const end = addDays(startOfWeek(last), 6);
+      const total = Math.round((end.getTime() - start.getTime()) / 86400000) + 1;
+      return Array.from({ length: total }, (_, i) => addDays(start, i));
+    }
     const start = startOfWeek(base);
     return Array.from({ length: 7 }, (_, i) => addDays(start, i));
   }, [anchor, view]);
+
 
   const rangeFrom = useMemo(() => {
     const d = new Date(days[0]!);
@@ -315,7 +328,12 @@ function AgendaPage() {
   }
 
   function shift(delta: number) {
-    setAnchor(toISODate(addDays(fromISODate(anchor), view === "dia" ? delta : delta * 7)));
+    const base = fromISODate(anchor);
+    if (view === "mes") {
+      setAnchor(toISODate(new Date(base.getFullYear(), base.getMonth() + delta, 1)));
+      return;
+    }
+    setAnchor(toISODate(addDays(base, view === "dia" ? delta : delta * 7)));
   }
 
   return (
@@ -329,7 +347,9 @@ function AgendaPage() {
           <p className="text-sm text-muted-foreground">
             {view === "dia"
               ? longDayLabel.format(days[0]!)
-              : `${dayLabel.format(days[0]!)} — ${dayLabel.format(days[days.length - 1]!)}`}
+              : view === "mes"
+                ? monthLabel.format(fromISODate(anchor))
+                : `${dayLabel.format(days[0]!)} — ${dayLabel.format(days[days.length - 1]!)}`}
           </p>
         </div>
         <Button onClick={() => openNew()}>
@@ -339,10 +359,11 @@ function AgendaPage() {
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
-        <Tabs value={view} onValueChange={(v) => setView(v as "dia" | "semana")}>
+        <Tabs value={view} onValueChange={(v) => setView(v as ViewMode)}>
           <TabsList>
             <TabsTrigger value="dia">Dia</TabsTrigger>
             <TabsTrigger value="semana">Semana</TabsTrigger>
+            <TabsTrigger value="mes">Mês</TabsTrigger>
           </TabsList>
         </Tabs>
         <div className="flex items-center gap-1">
@@ -365,6 +386,80 @@ function AgendaPage() {
         </Button>
       </div>
 
+      {view === "mes" ? (
+        <div className="grid grid-cols-7 gap-1">
+          {["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"].map((w) => (
+            <div key={w} className="pb-1 text-center text-xs font-medium text-muted-foreground">
+              {w}
+            </div>
+          ))}
+          {days.map((day) => {
+            const items = byDay(day);
+            const key = toISODate(day);
+            const isToday = key === toISODate(new Date());
+            const inMonth = day.getMonth() === fromISODate(anchor).getMonth();
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => {
+                  setAnchor(key);
+                  setView("dia");
+                }}
+                className={cn(
+                  "min-h-24 rounded-md border p-1 text-left align-top transition-colors hover:bg-accent/50",
+                  !inMonth && "opacity-45",
+                  isToday && "ring-1 ring-primary",
+                )}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium">{day.getDate()}</span>
+                  {items.length === 0 && (
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      aria-label="Marcar neste dia"
+                      className="rounded p-0.5 text-muted-foreground hover:text-foreground"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openNew(day);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          openNew(day);
+                        }
+                      }}
+                    >
+                      <Plus className="h-3 w-3" />
+                    </span>
+                  )}
+                </div>
+                <div className="mt-1 space-y-0.5">
+                  {items.slice(0, 3).map((a) => (
+                    <div
+                      key={a.id}
+                      className={cn(
+                        "truncate rounded px-1 py-0.5 text-[10px]",
+                        statusStyles[a.status],
+                        a.status === "cancelado" && "line-through",
+                      )}
+                    >
+                      {timeLabel.format(new Date(a.scheduled_at!))} {a.client_name}
+                    </div>
+                  ))}
+                  {items.length > 3 && (
+                    <div className="text-[10px] text-muted-foreground">
+                      +{items.length - 3}
+                    </div>
+                  )}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      ) : (
       <div
         className={cn(
           "grid gap-3",
@@ -463,6 +558,7 @@ function AgendaPage() {
           );
         })}
       </div>
+      )}
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
