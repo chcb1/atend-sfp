@@ -173,16 +173,25 @@ function AgendaPage() {
   const cancel = useServerFn(cancelAppointment);
   const complete = useServerFn(completeAppointment);
 
-  const [view, setView] = useState<"dia" | "semana">("semana");
+  const [view, setView] = useState<ViewMode>("semana");
   const [anchor, setAnchor] = useState(() => toISODate(new Date()));
   const [showCancelled, setShowCancelled] = useState(true);
 
   const days = useMemo(() => {
     const base = fromISODate(anchor);
     if (view === "dia") return [base];
+    if (view === "mes") {
+      const first = new Date(base.getFullYear(), base.getMonth(), 1);
+      const last = new Date(base.getFullYear(), base.getMonth() + 1, 0);
+      const start = startOfWeek(first);
+      const end = addDays(startOfWeek(last), 6);
+      const total = Math.round((end.getTime() - start.getTime()) / 86400000) + 1;
+      return Array.from({ length: total }, (_, i) => addDays(start, i));
+    }
     const start = startOfWeek(base);
     return Array.from({ length: 7 }, (_, i) => addDays(start, i));
   }, [anchor, view]);
+
 
   const rangeFrom = useMemo(() => {
     const d = new Date(days[0]!);
