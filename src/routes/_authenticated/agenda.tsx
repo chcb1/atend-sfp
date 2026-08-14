@@ -133,6 +133,10 @@ const statusLabels: Record<AppointmentStatus, string> = {
   cancelado: "Cancelado",
 };
 
+type ViewMode = "dia" | "semana" | "mes";
+
+const monthLabel = new Intl.DateTimeFormat("pt-BR", { month: "long", year: "numeric" });
+
 type FormState = {
   id: string | null;
   client_id: string;
