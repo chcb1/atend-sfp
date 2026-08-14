@@ -66,9 +66,14 @@ export const createAppointment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((raw) => apptInput.parse(raw))
   .handler(async ({ data, context }): Promise<Appointment> => {
+    const { findFreeNoonSlot } = await import("./appointment-slot.server");
+    const scheduledAt = await findFreeNoonSlot(context.supabase, data.date, 60);
     const payload = {
       user_id: context.userId,
       date: data.date,
+      status: "concluido" as const,
+      scheduled_at: scheduledAt,
+      duration_minutes: 60,
       client_id: data.client_id || null,
       client_name: data.client_name,
       procedure_id: data.procedure_id || null,
@@ -92,10 +97,34 @@ export const updateAppointment = createServerFn({ method: "POST" })
   .inputValidator((raw) => apptInput.extend({ id: z.string().uuid() }).parse(raw))
   .handler(async ({ data, context }): Promise<Appointment> => {
     const { id, ...rest } = data;
+    const { findFreeNoonSlot, saoPauloHourUtc } = await import("./appointment-slot.server");
+
+    const { data: current, error: currentError } = await (context.supabase as any)
+      .from("appointments")
+      .select("status, scheduled_at, duration_minutes, date")
+      .eq("id", id)
+      .maybeSingle();
+    if (currentError) throw new Error(currentError.message);
+
+    const duration = current?.duration_minutes ?? 60;
+    const dayStart = saoPauloHourUtc(rest.date, 0).getTime();
+    const sameDay =
+      current?.scheduled_at != null &&
+      new Date(current.scheduled_at).getTime() >= dayStart &&
+      new Date(current.scheduled_at).getTime() < dayStart + 24 * 60 * 60000;
+
+    // Este formulário registra atendimentos já realizados; mantém agenda coerente.
+    const scheduledAt = sameDay
+      ? current.scheduled_at
+      : await findFreeNoonSlot(context.supabase, rest.date, duration, id);
+
     const { data: row, error } = await (context.supabase as any)
       .from("appointments")
       .update({
         date: rest.date,
+        status: current?.status === "cancelado" ? "cancelado" : "concluido",
+        scheduled_at: scheduledAt,
+        duration_minutes: duration,
         client_id: rest.client_id || null,
         client_name: rest.client_name,
         procedure_id: rest.procedure_id || null,
@@ -111,6 +140,7 @@ export const updateAppointment = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return row as Appointment;
   });
+
 
 export const deleteAppointment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
