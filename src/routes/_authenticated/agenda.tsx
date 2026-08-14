@@ -338,7 +338,9 @@ function AgendaPage() {
           <p className="text-sm text-muted-foreground">
             {view === "dia"
               ? longDayLabel.format(days[0]!)
-              : `${dayLabel.format(days[0]!)} — ${dayLabel.format(days[days.length - 1]!)}`}
+              : view === "mes"
+                ? monthLabel.format(fromISODate(anchor))
+                : `${dayLabel.format(days[0]!)} — ${dayLabel.format(days[days.length - 1]!)}`}
           </p>
         </div>
         <Button onClick={() => openNew()}>
