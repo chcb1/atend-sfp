@@ -374,6 +374,80 @@ function AgendaPage() {
         </Button>
       </div>
 
+      {view === "mes" ? (
+        <div className="grid grid-cols-7 gap-1">
+          {["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"].map((w) => (
+            <div key={w} className="pb-1 text-center text-xs font-medium text-muted-foreground">
+              {w}
+            </div>
+          ))}
+          {days.map((day) => {
+            const items = byDay(day);
+            const key = toISODate(day);
+            const isToday = key === toISODate(new Date());
+            const inMonth = day.getMonth() === fromISODate(anchor).getMonth();
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => {
+                  setAnchor(key);
+                  setView("dia");
+                }}
+                className={cn(
+                  "min-h-24 rounded-md border p-1 text-left align-top transition-colors hover:bg-accent/50",
+                  !inMonth && "opacity-45",
+                  isToday && "ring-1 ring-primary",
+                )}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium">{day.getDate()}</span>
+                  {items.length === 0 && (
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      aria-label="Marcar neste dia"
+                      className="rounded p-0.5 text-muted-foreground hover:text-foreground"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openNew(day);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          openNew(day);
+                        }
+                      }}
+                    >
+                      <Plus className="h-3 w-3" />
+                    </span>
+                  )}
+                </div>
+                <div className="mt-1 space-y-0.5">
+                  {items.slice(0, 3).map((a) => (
+                    <div
+                      key={a.id}
+                      className={cn(
+                        "truncate rounded px-1 py-0.5 text-[10px]",
+                        statusStyles[a.status],
+                        a.status === "cancelado" && "line-through",
+                      )}
+                    >
+                      {timeLabel.format(new Date(a.scheduled_at!))} {a.client_name}
+                    </div>
+                  ))}
+                  {items.length > 3 && (
+                    <div className="text-[10px] text-muted-foreground">
+                      +{items.length - 3}
+                    </div>
+                  )}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      ) : (
       <div
         className={cn(
           "grid gap-3",
