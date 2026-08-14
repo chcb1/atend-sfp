@@ -324,7 +324,12 @@ function AgendaPage() {
   }
 
   function shift(delta: number) {
-    setAnchor(toISODate(addDays(fromISODate(anchor), view === "dia" ? delta : delta * 7)));
+    const base = fromISODate(anchor);
+    if (view === "mes") {
+      setAnchor(toISODate(new Date(base.getFullYear(), base.getMonth() + delta, 1)));
+      return;
+    }
+    setAnchor(toISODate(addDays(base, view === "dia" ? delta : delta * 7)));
   }
 
   return (
