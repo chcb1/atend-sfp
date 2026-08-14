@@ -348,10 +348,11 @@ function AgendaPage() {
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
-        <Tabs value={view} onValueChange={(v) => setView(v as "dia" | "semana")}>
+        <Tabs value={view} onValueChange={(v) => setView(v as ViewMode)}>
           <TabsList>
             <TabsTrigger value="dia">Dia</TabsTrigger>
             <TabsTrigger value="semana">Semana</TabsTrigger>
+            <TabsTrigger value="mes">Mês</TabsTrigger>
           </TabsList>
         </Tabs>
         <div className="flex items-center gap-1">
