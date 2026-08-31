@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_settings: {
+        Row: {
+          created_at: string
+          expenses_open_to_all_approved: boolean
+          id: boolean
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          expenses_open_to_all_approved?: boolean
+          id?: boolean
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          expenses_open_to_all_approved?: boolean
+          id?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       appointments: {
         Row: {
           client_id: string | null
@@ -150,6 +171,39 @@ export type Database = {
           name?: string
           notes?: string | null
           phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      expenses: {
+        Row: {
+          amount: number
+          category: string | null
+          created_at: string
+          description: string
+          expense_date: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          category?: string | null
+          created_at?: string
+          description: string
+          expense_date?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          category?: string | null
+          created_at?: string
+          description?: string
+          expense_date?: string
+          id?: string
           updated_at?: string
           user_id?: string
         }
