@@ -74,3 +74,14 @@ export type ForecastStats = {
     net_value: number;
   }[];
 };
+
+export type Expense = {
+  id: string;
+  user_id: string;
+  description: string;
+  category: string | null;
+  amount: number;
+  expense_date: string; // YYYY-MM-DD
+  created_at: string;
+  updated_at: string;
+};
