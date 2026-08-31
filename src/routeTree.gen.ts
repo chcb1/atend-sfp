@@ -13,6 +13,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedProcedimentosRouteImport } from './routes/_authenticated/procedimentos'
+import { Route as AuthenticatedDespesasRouteImport } from './routes/_authenticated/despesas'
 import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticated/clientes'
 import { Route as AuthenticatedAgendaRouteImport } from './routes/_authenticated/agenda'
 import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authenticated/_admin/route'
@@ -42,6 +43,11 @@ const AuthenticatedProcedimentosRoute =
     path: '/procedimentos',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedDespesasRoute = AuthenticatedDespesasRouteImport.update({
+  id: '/despesas',
+  path: '/despesas',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedClientesRoute = AuthenticatedClientesRouteImport.update({
   id: '/clientes',
   path: '/clientes',
@@ -92,6 +98,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/agenda': typeof AuthenticatedAgendaRoute
   '/clientes': typeof AuthenticatedClientesRoute
+  '/despesas': typeof AuthenticatedDespesasRoute
   '/procedimentos': typeof AuthenticatedProcedimentosRoute
   '/auditoria': typeof AuthenticatedAdminAuditoriaRoute
   '/usuarios': typeof AuthenticatedAdminUsuariosRoute
@@ -104,6 +111,7 @@ export interface FileRoutesByTo {
   '/': typeof AuthenticatedIndexRoute
   '/agenda': typeof AuthenticatedAgendaRoute
   '/clientes': typeof AuthenticatedClientesRoute
+  '/despesas': typeof AuthenticatedDespesasRoute
   '/procedimentos': typeof AuthenticatedProcedimentosRoute
   '/auditoria': typeof AuthenticatedAdminAuditoriaRoute
   '/usuarios': typeof AuthenticatedAdminUsuariosRoute
@@ -118,6 +126,7 @@ export interface FileRoutesById {
   '/_authenticated/_admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/_authenticated/agenda': typeof AuthenticatedAgendaRoute
   '/_authenticated/clientes': typeof AuthenticatedClientesRoute
+  '/_authenticated/despesas': typeof AuthenticatedDespesasRoute
   '/_authenticated/procedimentos': typeof AuthenticatedProcedimentosRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/_admin/auditoria': typeof AuthenticatedAdminAuditoriaRoute
@@ -133,6 +142,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/agenda'
     | '/clientes'
+    | '/despesas'
     | '/procedimentos'
     | '/auditoria'
     | '/usuarios'
@@ -145,6 +155,7 @@ export interface FileRouteTypes {
     | '/'
     | '/agenda'
     | '/clientes'
+    | '/despesas'
     | '/procedimentos'
     | '/auditoria'
     | '/usuarios'
@@ -158,6 +169,7 @@ export interface FileRouteTypes {
     | '/_authenticated/_admin'
     | '/_authenticated/agenda'
     | '/_authenticated/clientes'
+    | '/_authenticated/despesas'
     | '/_authenticated/procedimentos'
     | '/_authenticated/'
     | '/_authenticated/_admin/auditoria'
@@ -200,6 +212,13 @@ declare module '@tanstack/react-router' {
       path: '/procedimentos'
       fullPath: '/procedimentos'
       preLoaderRoute: typeof AuthenticatedProcedimentosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/despesas': {
+      id: '/_authenticated/despesas'
+      path: '/despesas'
+      fullPath: '/despesas'
+      preLoaderRoute: typeof AuthenticatedDespesasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/clientes': {
@@ -281,6 +300,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRouteRoute: typeof AuthenticatedAdminRouteRouteWithChildren
   AuthenticatedAgendaRoute: typeof AuthenticatedAgendaRoute
   AuthenticatedClientesRoute: typeof AuthenticatedClientesRoute
+  AuthenticatedDespesasRoute: typeof AuthenticatedDespesasRoute
   AuthenticatedProcedimentosRoute: typeof AuthenticatedProcedimentosRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedAtendimentosNovoRoute: typeof AuthenticatedAtendimentosNovoRoute
@@ -292,6 +312,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRouteRoute: AuthenticatedAdminRouteRouteWithChildren,
   AuthenticatedAgendaRoute: AuthenticatedAgendaRoute,
   AuthenticatedClientesRoute: AuthenticatedClientesRoute,
+  AuthenticatedDespesasRoute: AuthenticatedDespesasRoute,
   AuthenticatedProcedimentosRoute: AuthenticatedProcedimentosRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedAtendimentosNovoRoute: AuthenticatedAtendimentosNovoRoute,
