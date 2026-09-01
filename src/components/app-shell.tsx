@@ -11,6 +11,7 @@ import {
   Shield,
   ScrollText,
   Clock,
+  Receipt,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -39,6 +40,7 @@ const baseNav = [
 const dashboardNav = { to: "/", label: "Dashboard", icon: LayoutDashboard } as const;
 
 const adminNav = [
+  { to: "/despesas", label: "Despesas", icon: Receipt },
   { to: "/usuarios", label: "Usuários", icon: Shield },
   { to: "/auditoria", label: "Auditoria", icon: ScrollText },
 ] as const;
