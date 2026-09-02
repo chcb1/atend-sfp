@@ -672,35 +672,26 @@ function AgendaPage() {
             <div className="grid grid-cols-3 gap-3">
               <div className="space-y-2">
                 <Label htmlFor="ag-gross">Valor bruto</Label>
-                <Input
+                <CurrencyInput
                   id="ag-gross"
-                  type="number"
-                  min={0}
-                  step="0.01"
-                  value={form.gross_value}
-                  onChange={(e) => setForm((f) => ({ ...f, gross_value: e.target.value }))}
+                  value={parseFloat(form.gross_value) || 0}
+                  onValueChange={(v) => setForm((f) => ({ ...f, gross_value: String(v) }))}
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="ag-exp">Despesas</Label>
-                <Input
+                <CurrencyInput
                   id="ag-exp"
-                  type="number"
-                  min={0}
-                  step="0.01"
-                  value={form.expenses}
-                  onChange={(e) => setForm((f) => ({ ...f, expenses: e.target.value }))}
+                  value={parseFloat(form.expenses) || 0}
+                  onValueChange={(v) => setForm((f) => ({ ...f, expenses: String(v) }))}
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="ag-tax">Imposto/Taxa</Label>
-                <Input
+                <CurrencyInput
                   id="ag-tax"
-                  type="number"
-                  min={0}
-                  step="0.01"
-                  value={form.tax}
-                  onChange={(e) => setForm((f) => ({ ...f, tax: e.target.value }))}
+                  value={parseFloat(form.tax) || 0}
+                  onValueChange={(v) => setForm((f) => ({ ...f, tax: String(v) }))}
                 />
               </div>
             </div>
