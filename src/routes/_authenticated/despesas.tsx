@@ -11,6 +11,25 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { CurrencyInput } from "@/components/ui/currency-input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+const CATEGORIES: string[] = [
+  "Material de consumo",
+  "Equipamento",
+  "Manutenção",
+  "Aluguel",
+  "Impostos e taxas",
+  "Marketing",
+  "Software / Assinaturas",
+  "Outros",
+];
 import {
   Dialog,
   DialogContent,
