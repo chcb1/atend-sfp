@@ -224,13 +224,10 @@ export function AppointmentForm({ appointment }: { appointment?: Appointment }) 
             <div className="grid gap-4 md:grid-cols-3">
               <div className="space-y-2">
                 <Label htmlFor="gross">Valor Bruto *</Label>
-                <Input
+                <CurrencyInput
                   id="gross"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={grossValue}
-                  onChange={(e) => setGrossValue(e.target.value)}
+                  value={parseFloat(grossValue) || 0}
+                  onValueChange={(v) => setGrossValue(String(v))}
                   required
                 />
                 {procedureId && (
@@ -241,24 +238,18 @@ export function AppointmentForm({ appointment }: { appointment?: Appointment }) 
               </div>
               <div className="space-y-2">
                 <Label htmlFor="exp">Despesas</Label>
-                <Input
+                <CurrencyInput
                   id="exp"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={expenses}
-                  onChange={(e) => setExpenses(e.target.value)}
+                  value={parseFloat(expenses) || 0}
+                  onValueChange={(v) => setExpenses(String(v))}
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="tax">Imposto / Taxa</Label>
-                <Input
+                <CurrencyInput
                   id="tax"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={tax}
-                  onChange={(e) => setTax(e.target.value)}
+                  value={parseFloat(tax) || 0}
+                  onValueChange={(v) => setTax(String(v))}
                 />
               </div>
             </div>
