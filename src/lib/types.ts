@@ -42,6 +42,8 @@ export type Appointment = {
   updated_at: string;
 };
 
+export type ChartWindow = "month" | "three-months" | "year" | "all";
+
 export type DashboardStats = {
   totalGross: number;
   totalExpenses: number;
@@ -54,6 +56,10 @@ export type DashboardStats = {
   byProcedure: { procedure: string; net: number }[];
   topClients: { client: string; net: number; count: number }[];
   recent: Appointment[];
+  /** Provisão (status agendado) dentro do período selecionado */
+  projection: { gross: number; expenses: number; tax: number; net: number };
+  /** Consolidado de caixa no período selecionado */
+  cashflow: { inflow: number; outflow: number; standaloneExpenses: number; result: number };
 };
 
 export type ForecastWindow = {
