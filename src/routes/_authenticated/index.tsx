@@ -22,7 +22,18 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { brl, formatDateBR } from "@/lib/format";
-import { TrendingUp, Receipt, Percent, DollarSign, Plus, ArrowRight, CalendarClock } from "lucide-react";
+import {
+  TrendingUp,
+  Receipt,
+  Percent,
+  DollarSign,
+  Plus,
+  ArrowRight,
+  ArrowDownRight,
+  ArrowUpRight,
+  Wallet,
+  CalendarClock,
+} from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/")({
   component: Dashboard,
