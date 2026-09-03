@@ -22,7 +22,18 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { brl, formatDateBR } from "@/lib/format";
-import { TrendingUp, Receipt, Percent, DollarSign, Plus, ArrowRight, CalendarClock } from "lucide-react";
+import {
+  TrendingUp,
+  Receipt,
+  Percent,
+  DollarSign,
+  Plus,
+  ArrowRight,
+  ArrowDownRight,
+  ArrowUpRight,
+  Wallet,
+  CalendarClock,
+} from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/")({
   component: Dashboard,
@@ -30,15 +41,16 @@ export const Route = createFileRoute("/_authenticated/")({
   notFoundComponent: () => <div>Nada encontrado.</div>,
 });
 
-type Range = "month" | "last-month" | "year" | "all";
+type Range = "month" | "three-months" | "year" | "all";
 
 function rangeToDates(r: Range): { from?: string; to?: string } {
   const now = new Date();
   const y = now.getFullYear();
   const m = now.getMonth();
-  const iso = (d: Date) => d.toISOString().slice(0, 10);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const iso = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
   if (r === "month") return { from: iso(new Date(y, m, 1)), to: iso(new Date(y, m + 1, 0)) };
-  if (r === "last-month") return { from: iso(new Date(y, m - 1, 1)), to: iso(new Date(y, m, 0)) };
+  if (r === "three-months") return { from: iso(new Date(y, m - 2, 1)), to: iso(new Date(y, m + 1, 0)) };
   if (r === "year") return { from: iso(new Date(y, 0, 1)), to: iso(new Date(y, 11, 31)) };
   return {};
 }
@@ -54,10 +66,12 @@ function Dashboard() {
   });
   const [range, setRange] = useState<Range>("month");
   const dates = useMemo(() => rangeToDates(range), [range]);
+  const params = useMemo(() => ({ ...dates, chartWindow: range }), [dates, range]);
+  const showProjection = range === "month" || range === "three-months";
   const fetchStats = useServerFn(getDashboardStats);
   const { data, isLoading } = useQuery({
-    queryKey: ["dashboard", dates],
-    queryFn: () => fetchStats({ data: dates }),
+    queryKey: ["dashboard", params],
+    queryFn: () => fetchStats({ data: params }),
     enabled: isAdmin === true,
   });
   const fetchForecast = useServerFn(getForecastStats);
@@ -85,7 +99,7 @@ function Dashboard() {
           <Tabs value={range} onValueChange={(v) => setRange(v as Range)}>
             <TabsList>
               <TabsTrigger value="month">Mês atual</TabsTrigger>
-              <TabsTrigger value="last-month">Mês passado</TabsTrigger>
+              <TabsTrigger value="three-months">3 meses</TabsTrigger>
               <TabsTrigger value="year">Ano</TabsTrigger>
               <TabsTrigger value="all">Tudo</TabsTrigger>
             </TabsList>
@@ -112,13 +126,20 @@ function Dashboard() {
       ) : (
         <>
           <div className="grid gap-4 md:grid-cols-4">
-            <KpiCard label="Receita Bruta" value={brl(data.totalGross)} icon={DollarSign} tone="muted" />
+            <KpiCard
+              label="Receita Bruta"
+              value={brl(data.totalGross)}
+              icon={DollarSign}
+              tone="muted"
+              projected={showProjection ? data.projection.gross : undefined}
+            />
             <KpiCard
               label="Despesas"
               value={brl(data.totalExpenses)}
               icon={Receipt}
               tone="muted"
               percent={pctOf(data.totalExpenses, data.totalGross)}
+              projected={showProjection ? data.projection.expenses : undefined}
             />
             <KpiCard
               label="Impostos / Taxas"
@@ -126,6 +147,7 @@ function Dashboard() {
               icon={Percent}
               tone="muted"
               percent={pctOf(data.totalTax, data.totalGross)}
+              projected={showProjection ? data.projection.tax : undefined}
             />
             <KpiCard
               label="Lucro Líquido"
@@ -133,6 +155,7 @@ function Dashboard() {
               icon={TrendingUp}
               tone="primary"
               percent={pctOf(data.totalNet, data.totalGross)}
+              projected={showProjection ? data.projection.net : undefined}
             />
           </div>
 
@@ -288,6 +311,56 @@ function Dashboard() {
             </div>
           </section>
 
+          <section className="space-y-3">
+            <div>
+              <h2 className="text-lg font-semibold">Consolidado (Entradas x Saídas)</h2>
+              <p className="text-xs text-muted-foreground">
+                Resultado de caixa do período selecionado — inclui despesas avulsas, diferente do "Lucro Líquido"
+                acima, que considera apenas os valores embutidos em cada atendimento.
+              </p>
+            </div>
+            <div className="grid gap-4 md:grid-cols-3">
+              <KpiCard label="Entradas" value={brl(data.cashflow.inflow)} icon={ArrowDownRight} tone="muted" />
+              <KpiCard
+                label="Saídas"
+                value={brl(data.cashflow.outflow)}
+                icon={ArrowUpRight}
+                tone="muted"
+                percent={`inclui ${brl(data.cashflow.standaloneExpenses)} de despesas avulsas`}
+              />
+              <Card className={data.cashflow.result >= 0 ? "border-emerald-500/50" : "border-destructive/50"}>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      Resultado
+                    </span>
+                    <Wallet
+                      className={
+                        "h-4 w-4 " +
+                        (data.cashflow.result >= 0 ? "text-emerald-600" : "text-destructive")
+                      }
+                    />
+                  </div>
+                  <div
+                    className={
+                      "mt-2 text-2xl font-semibold tabular-nums " +
+                      (data.cashflow.result >= 0
+                        ? "text-emerald-600 dark:text-emerald-400"
+                        : "text-destructive")
+                    }
+                  >
+                    {brl(data.cashflow.result)}
+                  </div>
+                  <div className="mt-1 text-xs text-muted-foreground">
+                    Resultado de caixa, inclui despesas avulsas
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </section>
+
+
+
 
           <div className="grid gap-4 lg:grid-cols-2">
             <Card>
@@ -360,12 +433,14 @@ function KpiCard({
   icon: Icon,
   tone = "muted",
   percent,
+  projected,
 }: {
   label: string;
   value: string;
   icon?: React.ComponentType<{ className?: string }>;
   tone?: "muted" | "primary";
   percent?: string;
+  projected?: number;
 }) {
   return (
     <Card className={tone === "primary" ? "border-primary/40 bg-primary/5" : undefined}>
@@ -381,6 +456,9 @@ function KpiCard({
           <div className={"mt-1 text-xs " + (tone === "primary" ? "text-primary/80" : "text-muted-foreground")}>
             {percent}
           </div>
+        )}
+        {projected !== undefined && projected > 0 && (
+          <div className="mt-1 text-xs text-amber-700 dark:text-amber-400">+ {brl(projected)} projetado</div>
         )}
       </CardContent>
     </Card>

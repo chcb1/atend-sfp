@@ -117,15 +117,89 @@ export const getDashboardStats = createServerFn({ method: "GET" })
       if (provMap.has(k)) provMap.set(k, (provMap.get(k) ?? 0) + Number(r.net_value));
     }
 
-    const monthKeys = new Set<string>([...byMonthMap.keys(), ...futureMonths]);
-    const byMonth = Array.from(monthKeys)
-      .sort((a, b) => a.localeCompare(b))
-      .map((month) => ({
-        month,
-        net: byMonthMap.get(month)?.net ?? 0,
-        gross: byMonthMap.get(month)?.gross ?? 0,
-        provisionedNet: provMap.get(month) ?? 0,
-      }));
+    const chartWindow = data?.chartWindow ?? "all";
+    const monthKeyOf = (offset: number) =>
+      saoPauloMonthKey(startOfMonthInSaoPaulo(anchorYear, anchorMonth + offset));
+
+    let byMonth: DashboardStats["byMonth"];
+
+    if (chartWindow === "month" || chartWindow === "three-months") {
+      const offsets = chartWindow === "month" ? [-1, 0, 1] : [-2, -1, 0, 1];
+      const firstKey = monthKeyOf(offsets[0]!);
+      const afterKey = monthKeyOf(1);
+
+      const { data: chartRows } = await (context.supabase as any)
+        .from("appointments")
+        .select("date, net_value, gross_value")
+        .eq("status", "concluido")
+        .gte("date", `${firstKey}-01`)
+        .lt("date", `${afterKey}-01`);
+
+      const chartMap = new Map<string, { net: number; gross: number }>();
+      for (const r of (chartRows ?? []) as { date: string; net_value: number; gross_value: number }[]) {
+        const k = r.date.slice(0, 7);
+        const acc = chartMap.get(k) ?? { net: 0, gross: 0 };
+        acc.net += Number(r.net_value);
+        acc.gross += Number(r.gross_value);
+        chartMap.set(k, acc);
+      }
+
+      byMonth = [];
+      for (const off of offsets) {
+        const month = monthKeyOf(off);
+        const realized = chartMap.get(month) ?? { net: 0, gross: 0 };
+        const prov = provMap.get(month) ?? 0;
+        if (off < 0) {
+          byMonth.push({ month, net: realized.net, gross: realized.gross, provisionedNet: 0 });
+        } else if (off === 0) {
+          byMonth.push({ month, net: realized.net, gross: realized.gross, provisionedNet: prov });
+        } else if (prov > 0) {
+          byMonth.push({ month, net: 0, gross: 0, provisionedNet: prov });
+        }
+      }
+    } else {
+      const monthKeys = new Set<string>([...byMonthMap.keys(), ...futureMonths]);
+      byMonth = Array.from(monthKeys)
+        .sort((a, b) => a.localeCompare(b))
+        .map((month) => ({
+          month,
+          net: byMonthMap.get(month)?.net ?? 0,
+          gross: byMonthMap.get(month)?.gross ?? 0,
+          provisionedNet: provMap.get(month) ?? 0,
+        }));
+    }
+
+    // Provisão (agendado) dentro do período selecionado
+    let provQ = (context.supabase as any)
+      .from("appointments")
+      .select("gross_value, expenses, tax, net_value, date")
+      .eq("status", "agendado");
+    if (data?.from) provQ = provQ.gte("date", data.from);
+    if (data?.to) provQ = provQ.lte("date", data.to);
+    const { data: projRows } = await provQ;
+    const projection = ((projRows ?? []) as Appointment[]).reduce(
+      (acc, r) => {
+        acc.gross += Number(r.gross_value);
+        acc.expenses += Number(r.expenses);
+        acc.tax += Number(r.tax);
+        acc.net += Number(r.net_value);
+        return acc;
+      },
+      { gross: 0, expenses: 0, tax: 0, net: 0 },
+    );
+
+    // Despesas avulsas no período selecionado
+    let expQ = (context.supabase as any).from("expenses").select("amount, expense_date");
+    if (data?.from) expQ = expQ.gte("expense_date", data.from);
+    if (data?.to) expQ = expQ.lte("expense_date", data.to);
+    const { data: expRows } = await expQ;
+    const standaloneExpenses = ((expRows ?? []) as { amount: number }[]).reduce(
+      (s, r) => s + Number(r.amount),
+      0,
+    );
+
+    const inflow = totals.gross;
+    const outflow = totals.exp + totals.tax + standaloneExpenses;
 
     const byProcedure = Array.from(byProcMap.entries())
       .map(([procedure, net]) => ({ procedure, net }))
@@ -148,6 +222,8 @@ export const getDashboardStats = createServerFn({ method: "GET" })
       byProcedure,
       topClients,
       recent: list.slice(0, 5),
+      projection,
+      cashflow: { inflow, outflow, standaloneExpenses, result: inflow - outflow },
     };
   });
 
