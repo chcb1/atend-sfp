@@ -114,13 +114,20 @@ function Dashboard() {
       ) : (
         <>
           <div className="grid gap-4 md:grid-cols-4">
-            <KpiCard label="Receita Bruta" value={brl(data.totalGross)} icon={DollarSign} tone="muted" />
+            <KpiCard
+              label="Receita Bruta"
+              value={brl(data.totalGross)}
+              icon={DollarSign}
+              tone="muted"
+              projected={showProjection ? data.projection.gross : undefined}
+            />
             <KpiCard
               label="Despesas"
               value={brl(data.totalExpenses)}
               icon={Receipt}
               tone="muted"
               percent={pctOf(data.totalExpenses, data.totalGross)}
+              projected={showProjection ? data.projection.expenses : undefined}
             />
             <KpiCard
               label="Impostos / Taxas"
@@ -128,6 +135,7 @@ function Dashboard() {
               icon={Percent}
               tone="muted"
               percent={pctOf(data.totalTax, data.totalGross)}
+              projected={showProjection ? data.projection.tax : undefined}
             />
             <KpiCard
               label="Lucro Líquido"
@@ -135,6 +143,7 @@ function Dashboard() {
               icon={TrendingUp}
               tone="primary"
               percent={pctOf(data.totalNet, data.totalGross)}
+              projected={showProjection ? data.projection.net : undefined}
             />
           </div>
 
