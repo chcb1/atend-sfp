@@ -30,15 +30,16 @@ export const Route = createFileRoute("/_authenticated/")({
   notFoundComponent: () => <div>Nada encontrado.</div>,
 });
 
-type Range = "month" | "last-month" | "year" | "all";
+type Range = "month" | "three-months" | "year" | "all";
 
 function rangeToDates(r: Range): { from?: string; to?: string } {
   const now = new Date();
   const y = now.getFullYear();
   const m = now.getMonth();
-  const iso = (d: Date) => d.toISOString().slice(0, 10);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const iso = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
   if (r === "month") return { from: iso(new Date(y, m, 1)), to: iso(new Date(y, m + 1, 0)) };
-  if (r === "last-month") return { from: iso(new Date(y, m - 1, 1)), to: iso(new Date(y, m, 0)) };
+  if (r === "three-months") return { from: iso(new Date(y, m - 2, 1)), to: iso(new Date(y, m + 1, 0)) };
   if (r === "year") return { from: iso(new Date(y, 0, 1)), to: iso(new Date(y, 11, 31)) };
   return {};
 }
