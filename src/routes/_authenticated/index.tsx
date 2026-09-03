@@ -56,6 +56,7 @@ function Dashboard() {
   const [range, setRange] = useState<Range>("month");
   const dates = useMemo(() => rangeToDates(range), [range]);
   const params = useMemo(() => ({ ...dates, chartWindow: range }), [dates, range]);
+  const showProjection = range === "month" || range === "three-months";
   const fetchStats = useServerFn(getDashboardStats);
   const { data, isLoading } = useQuery({
     queryKey: ["dashboard", params],
