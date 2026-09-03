@@ -396,6 +396,9 @@ function KpiCard({
             {percent}
           </div>
         )}
+        {projected !== undefined && projected > 0 && (
+          <div className="mt-1 text-xs text-amber-700 dark:text-amber-400">+ {brl(projected)} projetado</div>
+        )}
       </CardContent>
     </Card>
   );
