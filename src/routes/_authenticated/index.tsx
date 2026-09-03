@@ -372,12 +372,14 @@ function KpiCard({
   icon: Icon,
   tone = "muted",
   percent,
+  projected,
 }: {
   label: string;
   value: string;
   icon?: React.ComponentType<{ className?: string }>;
   tone?: "muted" | "primary";
   percent?: string;
+  projected?: number;
 }) {
   return (
     <Card className={tone === "primary" ? "border-primary/40 bg-primary/5" : undefined}>
