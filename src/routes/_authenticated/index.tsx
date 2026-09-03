@@ -87,7 +87,7 @@ function Dashboard() {
           <Tabs value={range} onValueChange={(v) => setRange(v as Range)}>
             <TabsList>
               <TabsTrigger value="month">Mês atual</TabsTrigger>
-              <TabsTrigger value="last-month">Mês passado</TabsTrigger>
+              <TabsTrigger value="three-months">3 meses</TabsTrigger>
               <TabsTrigger value="year">Ano</TabsTrigger>
               <TabsTrigger value="all">Tudo</TabsTrigger>
             </TabsList>
