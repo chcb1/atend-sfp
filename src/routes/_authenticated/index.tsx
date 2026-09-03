@@ -55,10 +55,11 @@ function Dashboard() {
   });
   const [range, setRange] = useState<Range>("month");
   const dates = useMemo(() => rangeToDates(range), [range]);
+  const params = useMemo(() => ({ ...dates, chartWindow: range }), [dates, range]);
   const fetchStats = useServerFn(getDashboardStats);
   const { data, isLoading } = useQuery({
-    queryKey: ["dashboard", dates],
-    queryFn: () => fetchStats({ data: dates }),
+    queryKey: ["dashboard", params],
+    queryFn: () => fetchStats({ data: params }),
     enabled: isAdmin === true,
   });
   const fetchForecast = useServerFn(getForecastStats);
