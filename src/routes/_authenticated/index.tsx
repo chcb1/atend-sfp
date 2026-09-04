@@ -480,7 +480,13 @@ function formatDateTimeBR(iso: string) {
   return d.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
 }
 
-function ForecastCard({ title, w }: { title: string; w?: { gross: number; net: number; count: number } }) {
+function ForecastCard({
+  title,
+  w,
+}: {
+  title: string;
+  w?: { gross: number; net: number; count: number; expenseTotal: number; expenseCount: number };
+}) {
   return (
     <Card className="border-amber-400/60 bg-background">
       <CardContent className="p-6">
@@ -488,11 +494,26 @@ function ForecastCard({ title, w }: { title: string; w?: { gross: number; net: n
           <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{title}</span>
           <span className="text-xs text-muted-foreground">{w ? `${w.count} agendamento(s)` : "—"}</span>
         </div>
-        <div className="mt-2 text-2xl font-semibold tabular-nums text-amber-700 dark:text-amber-400">
-          {brl(w?.net ?? 0)}
+        <div className="mt-2 grid gap-3 sm:grid-cols-2">
+          <div>
+            <div className="text-xs text-muted-foreground">Entradas previstas</div>
+            <div className="text-2xl font-semibold tabular-nums text-amber-700 dark:text-amber-400">
+              {brl(w?.net ?? 0)}
+            </div>
+            <div className="mt-1 text-xs text-muted-foreground">Bruto esperado: {brl(w?.gross ?? 0)}</div>
+          </div>
+          <div>
+            <div className="text-xs text-muted-foreground">Saídas previstas</div>
+            <div className="text-2xl font-semibold tabular-nums text-destructive">
+              {brl(w?.expenseTotal ?? 0)}
+            </div>
+            <div className="mt-1 text-xs text-muted-foreground">
+              {w?.expenseCount ?? 0} despesa(s) pendente(s)
+            </div>
+          </div>
         </div>
-        <div className="mt-1 text-xs text-muted-foreground">Bruto esperado: {brl(w?.gross ?? 0)}</div>
       </CardContent>
     </Card>
   );
 }
+
