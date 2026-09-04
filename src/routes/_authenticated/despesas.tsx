@@ -259,6 +259,7 @@ function ExpenseForm({
   const [category, setCategory] = useState("");
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState(todayISO());
+  const [status, setStatus] = useState<ExpenseStatus | "">("");
 
   useEffect(() => {
     if (open) {
@@ -266,8 +267,11 @@ function ExpenseForm({
       setCategory(expense?.category ?? "");
       setAmount(expense ? String(expense.amount) : "");
       setDate(expense?.expense_date ?? todayISO());
+      setStatus(expense?.status ?? "");
     }
   }, [open, expense]);
+
+  const autoStatus: ExpenseStatus = date > todayISO() ? "pendente" : "paga";
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -276,6 +280,7 @@ function ExpenseForm({
         category: category || null,
         amount: parseFloat(amount) || 0,
         expense_date: date,
+        status: (status || autoStatus) as ExpenseStatus,
       };
       if (expense) return update({ data: { id: expense.id, ...payload } });
       return create({ data: payload });
@@ -294,8 +299,10 @@ function ExpenseForm({
         <DialogHeader>
           <DialogTitle>{expense ? "Editar despesa" : "Nova despesa"}</DialogTitle>
           <DialogDescription>
-            Despesas avulsas não afetam o valor líquido dos atendimentos.
+            Despesas não afetam o valor líquido dos atendimentos. Despesas com data futura nascem como
+            pendentes.
           </DialogDescription>
+
         </DialogHeader>
         <form
           onSubmit={(ev) => {
