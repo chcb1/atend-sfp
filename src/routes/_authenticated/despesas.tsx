@@ -106,7 +106,7 @@ function ExpensesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Despesas avulsas</h1>
+          <h1 className="text-2xl font-semibold">Despesas</h1>
           <p className="text-sm text-muted-foreground">
             Material, equipamento, aluguel e outros custos que não estão embutidos nos atendimentos
           </p>
@@ -137,8 +137,9 @@ function ExpensesPage() {
                   <TableHead>Data</TableHead>
                   <TableHead>Descrição</TableHead>
                   <TableHead>Categoria</TableHead>
+                  <TableHead>Situação</TableHead>
                   <TableHead className="text-right">Valor</TableHead>
-                  <TableHead className="w-24 text-right">Ações</TableHead>
+                  <TableHead className="w-32 text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -147,8 +148,24 @@ function ExpensesPage() {
                     <TableCell className="tabular-nums">{formatDate(e.expense_date)}</TableCell>
                     <TableCell className="font-medium">{e.description}</TableCell>
                     <TableCell className="text-muted-foreground">{e.category || "—"}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className={STATUS_CLASS[e.status]}>
+                        {STATUS_LABEL[e.status]}
+                      </Badge>
+                    </TableCell>
                     <TableCell className="text-right tabular-nums">{brl(Number(e.amount))}</TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right whitespace-nowrap">
+                      {e.status === "pendente" && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          title="Marcar como paga"
+                          disabled={statusMutation.isPending}
+                          onClick={() => statusMutation.mutate({ id: e.id, status: "paga" })}
+                        >
+                          <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
                         size="icon"
@@ -166,8 +183,8 @@ function ExpensesPage() {
                   </TableRow>
                 ))}
                 <TableRow>
-                  <TableCell colSpan={3} className="font-medium">
-                    Total
+                  <TableCell colSpan={4} className="font-medium">
+                    Total pago no período listado
                   </TableCell>
                   <TableCell className="text-right font-semibold tabular-nums">{brl(total)}</TableCell>
                   <TableCell />
@@ -177,6 +194,7 @@ function ExpensesPage() {
           )}
         </CardContent>
       </Card>
+
 
       <ExpenseForm
         open={editOpen}
