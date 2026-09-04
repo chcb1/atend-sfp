@@ -316,7 +316,7 @@ function Dashboard() {
             <div>
               <h2 className="text-lg font-semibold">Consolidado (Entradas x Saídas)</h2>
               <p className="text-xs text-muted-foreground">
-                Resultado de caixa do período selecionado — inclui despesas avulsas, diferente do "Lucro Líquido"
+                Resultado de caixa do período selecionado — inclui despesas, diferente do "Lucro Líquido"
                 acima, que considera apenas os valores embutidos em cada atendimento.
               </p>
             </div>
@@ -327,7 +327,7 @@ function Dashboard() {
                 value={brl(data.cashflow.outflow)}
                 icon={ArrowUpRight}
                 tone="muted"
-                percent={`inclui ${brl(data.cashflow.standaloneExpenses)} de despesas avulsas`}
+                percent={`inclui ${brl(data.cashflow.standaloneExpenses)} de despesas pagas`}
               />
               <Card className={data.cashflow.result >= 0 ? "border-emerald-500/50" : "border-destructive/50"}>
                 <CardContent className="p-6">
@@ -353,7 +353,7 @@ function Dashboard() {
                     {brl(data.cashflow.result)}
                   </div>
                   <div className="mt-1 text-xs text-muted-foreground">
-                    Resultado de caixa, inclui despesas avulsas
+                    Resultado de caixa, inclui despesas
                   </div>
                 </CardContent>
               </Card>
