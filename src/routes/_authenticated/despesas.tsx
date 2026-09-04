@@ -53,10 +53,22 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Pencil, Trash2, Receipt } from "lucide-react";
+import { Plus, Pencil, Trash2, Receipt, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
-import type { Expense } from "@/lib/types";
+import type { Expense, ExpenseStatus } from "@/lib/types";
 import { brl } from "@/lib/format";
+
+const STATUS_LABEL: Record<ExpenseStatus, string> = {
+  pendente: "Pendente",
+  paga: "Paga",
+  cancelada: "Cancelada",
+};
+
+const STATUS_CLASS: Record<ExpenseStatus, string> = {
+  pendente: "border-amber-500 text-amber-700 dark:text-amber-400",
+  paga: "border-emerald-500 text-emerald-700 dark:text-emerald-400",
+  cancelada: "border-muted text-muted-foreground line-through",
+};
 
 export const Route = createFileRoute("/_authenticated/despesas")({
   component: ExpensesPage,
@@ -94,6 +106,7 @@ function formatDate(d: string) {
 function ExpensesPage() {
   const qc = useQueryClient();
   const list = useServerFn(listExpenses);
+  const changeStatus = useServerFn(setExpenseStatus);
   const { data: expenses = [], isLoading } = useQuery({
     queryKey: ["expenses"],
     queryFn: () => list(),
@@ -103,7 +116,21 @@ function ExpensesPage() {
   const [editing, setEditing] = useState<Expense | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const total = expenses.reduce((s, e) => s + Number(e.amount), 0);
+  const statusMutation = useMutation({
+    mutationFn: (v: { id: string; status: ExpenseStatus }) => changeStatus({ data: v }),
+    onSuccess: () => {
+      toast.success("Situação atualizada");
+      qc.invalidateQueries({ queryKey: ["expenses"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+      qc.invalidateQueries({ queryKey: ["forecast"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const total = expenses
+    .filter((e) => e.status === "paga")
+    .reduce((s, e) => s + Number(e.amount), 0);
+
 
   return (
     <div className="space-y-6">
