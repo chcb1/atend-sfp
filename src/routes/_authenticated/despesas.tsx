@@ -364,6 +364,25 @@ function ExpenseForm({
               />
             </div>
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="e-status">Situação</Label>
+            <Select value={status || autoStatus} onValueChange={(v) => setStatus(v as ExpenseStatus)}>
+              <SelectTrigger id="e-status">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {(["pendente", "paga", "cancelada"] as ExpenseStatus[]).map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {STATUS_LABEL[s]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Sugerido pela data: {STATUS_LABEL[autoStatus]}
+            </p>
+          </div>
+
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
