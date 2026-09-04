@@ -276,8 +276,8 @@ function Dashboard() {
                 Estimativa
               </Badge>
               <p className="w-full text-xs text-muted-foreground">
-                Valores esperados de atendimentos com status "agendado" ainda não realizados — não entram nos números
-                consolidados acima.
+                Valores esperados de atendimentos com status "agendado" e despesas ainda pendentes — não entram nos
+                números consolidados acima.
               </p>
             </div>
 
@@ -285,6 +285,7 @@ function Dashboard() {
               <ForecastCard title="Próximos 7 dias" w={forecast?.next7} />
               <ForecastCard title="Próximos 30 dias" w={forecast?.next30} />
             </div>
+
 
             <div className="mt-4">
               <h3 className="mb-2 text-sm font-medium">Próximos agendamentos</h3>
