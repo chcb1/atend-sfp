@@ -184,6 +184,10 @@ export type Database = {
           description: string
           expense_date: string
           id: string
+          installment_number: number | null
+          installment_total: number | null
+          recurrence_group_id: string | null
+          status: Database["public"]["Enums"]["expense_status"]
           updated_at: string
           user_id: string
         }
@@ -194,6 +198,10 @@ export type Database = {
           description: string
           expense_date?: string
           id?: string
+          installment_number?: number | null
+          installment_total?: number | null
+          recurrence_group_id?: string | null
+          status?: Database["public"]["Enums"]["expense_status"]
           updated_at?: string
           user_id: string
         }
@@ -204,6 +212,10 @@ export type Database = {
           description?: string
           expense_date?: string
           id?: string
+          installment_number?: number | null
+          installment_total?: number | null
+          recurrence_group_id?: string | null
+          status?: Database["public"]["Enums"]["expense_status"]
           updated_at?: string
           user_id?: string
         }
@@ -298,6 +310,7 @@ export type Database = {
       app_role: "admin" | "user"
       appointment_status: "agendado" | "concluido" | "cancelado"
       approval_status: "pending" | "approved" | "rejected"
+      expense_status: "pendente" | "paga" | "cancelada"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -428,6 +441,7 @@ export const Constants = {
       app_role: ["admin", "user"],
       appointment_status: ["agendado", "concluido", "cancelado"],
       approval_status: ["pending", "approved", "rejected"],
+      expense_status: ["pendente", "paga", "cancelada"],
     },
   },
 } as const

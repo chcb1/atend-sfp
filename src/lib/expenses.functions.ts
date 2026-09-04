@@ -8,7 +8,15 @@ const expenseInput = z.object({
   category: z.string().trim().optional().nullable(),
   amount: z.number().positive("Valor deve ser maior que zero"),
   expense_date: z.string().min(1, "Data é obrigatória"),
+  status: z.enum(["pendente", "paga", "cancelada"]).optional(),
 });
+
+/** Status padrão: futura nasce pendente, hoje/passada nasce paga */
+function defaultStatus(expenseDate: string) {
+  const today = new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
+  return expenseDate > today ? "pendente" : "paga";
+}
+
 
 export const listExpenses = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -34,6 +42,7 @@ export const createExpense = createServerFn({ method: "POST" })
         category: data.category || null,
         amount: data.amount,
         expense_date: data.expense_date,
+        status: data.status ?? defaultStatus(data.expense_date),
       })
       .select("*")
       .single();
@@ -52,6 +61,7 @@ export const updateExpense = createServerFn({ method: "POST" })
         category: data.category || null,
         amount: data.amount,
         expense_date: data.expense_date,
+        ...(data.status ? { status: data.status } : {}),
       })
       .eq("id", data.id)
       .select("*")
@@ -59,6 +69,25 @@ export const updateExpense = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return row as Expense;
   });
+
+export const setExpenseStatus = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((raw) =>
+    z
+      .object({ id: z.string().uuid(), status: z.enum(["pendente", "paga", "cancelada"]) })
+      .parse(raw),
+  )
+  .handler(async ({ data, context }): Promise<Expense> => {
+    const { data: row, error } = await (context.supabase as any)
+      .from("expenses")
+      .update({ status: data.status })
+      .eq("id", data.id)
+      .select("*")
+      .single();
+    if (error) throw new Error(error.message);
+    return row as Expense;
+  });
+
 
 export const deleteExpense = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

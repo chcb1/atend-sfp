@@ -7,11 +7,14 @@ import {
   createExpense,
   updateExpense,
   deleteExpense,
+  setExpenseStatus,
 } from "@/lib/expenses.functions";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CurrencyInput } from "@/components/ui/currency-input";
+
 import {
   Select,
   SelectContent,
@@ -50,25 +53,37 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Pencil, Trash2, Receipt } from "lucide-react";
+import { Plus, Pencil, Trash2, Receipt, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
-import type { Expense } from "@/lib/types";
+import type { Expense, ExpenseStatus } from "@/lib/types";
 import { brl } from "@/lib/format";
+
+const STATUS_LABEL: Record<ExpenseStatus, string> = {
+  pendente: "Pendente",
+  paga: "Paga",
+  cancelada: "Cancelada",
+};
+
+const STATUS_CLASS: Record<ExpenseStatus, string> = {
+  pendente: "border-amber-500 text-amber-700 dark:text-amber-400",
+  paga: "border-emerald-500 text-emerald-700 dark:text-emerald-400",
+  cancelada: "border-muted text-muted-foreground line-through",
+};
 
 export const Route = createFileRoute("/_authenticated/despesas")({
   component: ExpensesPage,
   head: () => ({
     meta: [
-      { title: "Despesas avulsas | Fisio App" },
+      { title: "Despesas | Fisio App" },
       {
         name: "description",
         content:
-          "Cadastre e acompanhe despesas avulsas da clínica, como material, equipamento e aluguel.",
+          "Cadastre e acompanhe as despesas da clínica, como material, equipamento e aluguel.",
       },
-      { property: "og:title", content: "Despesas avulsas | Fisio App" },
+      { property: "og:title", content: "Despesas | Fisio App" },
       {
         property: "og:description",
-        content: "Controle de despesas avulsas separadas dos custos de cada atendimento.",
+        content: "Controle das despesas da clínica, com situação de pagamento.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -77,6 +92,7 @@ export const Route = createFileRoute("/_authenticated/despesas")({
   errorComponent: ({ error }) => <div className="text-destructive">{error.message}</div>,
   notFoundComponent: () => <div>Nada encontrado.</div>,
 });
+
 
 function todayISO() {
   return new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
@@ -90,6 +106,7 @@ function formatDate(d: string) {
 function ExpensesPage() {
   const qc = useQueryClient();
   const list = useServerFn(listExpenses);
+  const changeStatus = useServerFn(setExpenseStatus);
   const { data: expenses = [], isLoading } = useQuery({
     queryKey: ["expenses"],
     queryFn: () => list(),
@@ -99,13 +116,27 @@ function ExpensesPage() {
   const [editing, setEditing] = useState<Expense | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const total = expenses.reduce((s, e) => s + Number(e.amount), 0);
+  const statusMutation = useMutation({
+    mutationFn: (v: { id: string; status: ExpenseStatus }) => changeStatus({ data: v }),
+    onSuccess: () => {
+      toast.success("Situação atualizada");
+      qc.invalidateQueries({ queryKey: ["expenses"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+      qc.invalidateQueries({ queryKey: ["forecast"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const total = expenses
+    .filter((e) => e.status === "paga")
+    .reduce((s, e) => s + Number(e.amount), 0);
+
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Despesas avulsas</h1>
+          <h1 className="text-2xl font-semibold">Despesas</h1>
           <p className="text-sm text-muted-foreground">
             Material, equipamento, aluguel e outros custos que não estão embutidos nos atendimentos
           </p>
@@ -136,8 +167,9 @@ function ExpensesPage() {
                   <TableHead>Data</TableHead>
                   <TableHead>Descrição</TableHead>
                   <TableHead>Categoria</TableHead>
+                  <TableHead>Situação</TableHead>
                   <TableHead className="text-right">Valor</TableHead>
-                  <TableHead className="w-24 text-right">Ações</TableHead>
+                  <TableHead className="w-32 text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -146,8 +178,24 @@ function ExpensesPage() {
                     <TableCell className="tabular-nums">{formatDate(e.expense_date)}</TableCell>
                     <TableCell className="font-medium">{e.description}</TableCell>
                     <TableCell className="text-muted-foreground">{e.category || "—"}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className={STATUS_CLASS[e.status]}>
+                        {STATUS_LABEL[e.status]}
+                      </Badge>
+                    </TableCell>
                     <TableCell className="text-right tabular-nums">{brl(Number(e.amount))}</TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right whitespace-nowrap">
+                      {e.status === "pendente" && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          title="Marcar como paga"
+                          disabled={statusMutation.isPending}
+                          onClick={() => statusMutation.mutate({ id: e.id, status: "paga" })}
+                        >
+                          <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
                         size="icon"
@@ -165,8 +213,8 @@ function ExpensesPage() {
                   </TableRow>
                 ))}
                 <TableRow>
-                  <TableCell colSpan={3} className="font-medium">
-                    Total
+                  <TableCell colSpan={4} className="font-medium">
+                    Total pago no período listado
                   </TableCell>
                   <TableCell className="text-right font-semibold tabular-nums">{brl(total)}</TableCell>
                   <TableCell />
@@ -176,6 +224,7 @@ function ExpensesPage() {
           )}
         </CardContent>
       </Card>
+
 
       <ExpenseForm
         open={editOpen}
@@ -210,6 +259,7 @@ function ExpenseForm({
   const [category, setCategory] = useState("");
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState(todayISO());
+  const [status, setStatus] = useState<ExpenseStatus | "">("");
 
   useEffect(() => {
     if (open) {
@@ -217,8 +267,11 @@ function ExpenseForm({
       setCategory(expense?.category ?? "");
       setAmount(expense ? String(expense.amount) : "");
       setDate(expense?.expense_date ?? todayISO());
+      setStatus(expense?.status ?? "");
     }
   }, [open, expense]);
+
+  const autoStatus: ExpenseStatus = date > todayISO() ? "pendente" : "paga";
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -227,6 +280,7 @@ function ExpenseForm({
         category: category || null,
         amount: parseFloat(amount) || 0,
         expense_date: date,
+        status: (status || autoStatus) as ExpenseStatus,
       };
       if (expense) return update({ data: { id: expense.id, ...payload } });
       return create({ data: payload });
@@ -245,8 +299,10 @@ function ExpenseForm({
         <DialogHeader>
           <DialogTitle>{expense ? "Editar despesa" : "Nova despesa"}</DialogTitle>
           <DialogDescription>
-            Despesas avulsas não afetam o valor líquido dos atendimentos.
+            Despesas não afetam o valor líquido dos atendimentos. Despesas com data futura nascem como
+            pendentes.
           </DialogDescription>
+
         </DialogHeader>
         <form
           onSubmit={(ev) => {
@@ -308,6 +364,25 @@ function ExpenseForm({
               />
             </div>
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="e-status">Situação</Label>
+            <Select value={status || autoStatus} onValueChange={(v) => setStatus(v as ExpenseStatus)}>
+              <SelectTrigger id="e-status">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {(["pendente", "paga", "cancelada"] as ExpenseStatus[]).map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {STATUS_LABEL[s]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Sugerido pela data: {STATUS_LABEL[autoStatus]}
+            </p>
+          </div>
+
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar

@@ -276,8 +276,8 @@ function Dashboard() {
                 Estimativa
               </Badge>
               <p className="w-full text-xs text-muted-foreground">
-                Valores esperados de atendimentos com status "agendado" ainda não realizados — não entram nos números
-                consolidados acima.
+                Valores esperados de atendimentos com status "agendado" e despesas ainda pendentes — não entram nos
+                números consolidados acima.
               </p>
             </div>
 
@@ -285,6 +285,7 @@ function Dashboard() {
               <ForecastCard title="Próximos 7 dias" w={forecast?.next7} />
               <ForecastCard title="Próximos 30 dias" w={forecast?.next30} />
             </div>
+
 
             <div className="mt-4">
               <h3 className="mb-2 text-sm font-medium">Próximos agendamentos</h3>
@@ -315,7 +316,7 @@ function Dashboard() {
             <div>
               <h2 className="text-lg font-semibold">Consolidado (Entradas x Saídas)</h2>
               <p className="text-xs text-muted-foreground">
-                Resultado de caixa do período selecionado — inclui despesas avulsas, diferente do "Lucro Líquido"
+                Resultado de caixa do período selecionado — inclui despesas, diferente do "Lucro Líquido"
                 acima, que considera apenas os valores embutidos em cada atendimento.
               </p>
             </div>
@@ -326,7 +327,7 @@ function Dashboard() {
                 value={brl(data.cashflow.outflow)}
                 icon={ArrowUpRight}
                 tone="muted"
-                percent={`inclui ${brl(data.cashflow.standaloneExpenses)} de despesas avulsas`}
+                percent={`inclui ${brl(data.cashflow.standaloneExpenses)} de despesas pagas`}
               />
               <Card className={data.cashflow.result >= 0 ? "border-emerald-500/50" : "border-destructive/50"}>
                 <CardContent className="p-6">
@@ -352,7 +353,7 @@ function Dashboard() {
                     {brl(data.cashflow.result)}
                   </div>
                   <div className="mt-1 text-xs text-muted-foreground">
-                    Resultado de caixa, inclui despesas avulsas
+                    Resultado de caixa, inclui despesas
                   </div>
                 </CardContent>
               </Card>
@@ -479,7 +480,13 @@ function formatDateTimeBR(iso: string) {
   return d.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
 }
 
-function ForecastCard({ title, w }: { title: string; w?: { gross: number; net: number; count: number } }) {
+function ForecastCard({
+  title,
+  w,
+}: {
+  title: string;
+  w?: { gross: number; net: number; count: number; expenseTotal: number; expenseCount: number };
+}) {
   return (
     <Card className="border-amber-400/60 bg-background">
       <CardContent className="p-6">
@@ -487,11 +494,26 @@ function ForecastCard({ title, w }: { title: string; w?: { gross: number; net: n
           <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{title}</span>
           <span className="text-xs text-muted-foreground">{w ? `${w.count} agendamento(s)` : "—"}</span>
         </div>
-        <div className="mt-2 text-2xl font-semibold tabular-nums text-amber-700 dark:text-amber-400">
-          {brl(w?.net ?? 0)}
+        <div className="mt-2 grid gap-3 sm:grid-cols-2">
+          <div>
+            <div className="text-xs text-muted-foreground">Entradas previstas</div>
+            <div className="text-2xl font-semibold tabular-nums text-amber-700 dark:text-amber-400">
+              {brl(w?.net ?? 0)}
+            </div>
+            <div className="mt-1 text-xs text-muted-foreground">Bruto esperado: {brl(w?.gross ?? 0)}</div>
+          </div>
+          <div>
+            <div className="text-xs text-muted-foreground">Saídas previstas</div>
+            <div className="text-2xl font-semibold tabular-nums text-destructive">
+              {brl(w?.expenseTotal ?? 0)}
+            </div>
+            <div className="mt-1 text-xs text-muted-foreground">
+              {w?.expenseCount ?? 0} despesa(s) pendente(s)
+            </div>
+          </div>
         </div>
-        <div className="mt-1 text-xs text-muted-foreground">Bruto esperado: {brl(w?.gross ?? 0)}</div>
       </CardContent>
     </Card>
   );
 }
+

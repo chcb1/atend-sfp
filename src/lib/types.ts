@@ -66,6 +66,9 @@ export type ForecastWindow = {
   gross: number;
   net: number;
   count: number;
+  /** Saídas previstas: despesas pendentes com vencimento na janela */
+  expenseTotal: number;
+  expenseCount: number;
 };
 
 export type ForecastStats = {
@@ -81,6 +84,8 @@ export type ForecastStats = {
   }[];
 };
 
+export type ExpenseStatus = "pendente" | "paga" | "cancelada";
+
 export type Expense = {
   id: string;
   user_id: string;
@@ -88,6 +93,11 @@ export type Expense = {
   category: string | null;
   amount: number;
   expense_date: string; // YYYY-MM-DD
+  status: ExpenseStatus;
+  recurrence_group_id: string | null;
+  installment_number: number | null;
+  installment_total: number | null;
   created_at: string;
   updated_at: string;
 };
+
