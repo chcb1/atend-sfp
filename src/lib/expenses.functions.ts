@@ -42,6 +42,7 @@ export const createExpense = createServerFn({ method: "POST" })
         category: data.category || null,
         amount: data.amount,
         expense_date: data.expense_date,
+        status: data.status ?? defaultStatus(data.expense_date),
       })
       .select("*")
       .single();
@@ -60,6 +61,7 @@ export const updateExpense = createServerFn({ method: "POST" })
         category: data.category || null,
         amount: data.amount,
         expense_date: data.expense_date,
+        ...(data.status ? { status: data.status } : {}),
       })
       .eq("id", data.id)
       .select("*")
@@ -67,6 +69,25 @@ export const updateExpense = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return row as Expense;
   });
+
+export const setExpenseStatus = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((raw) =>
+    z
+      .object({ id: z.string().uuid(), status: z.enum(["pendente", "paga", "cancelada"]) })
+      .parse(raw),
+  )
+  .handler(async ({ data, context }): Promise<Expense> => {
+    const { data: row, error } = await (context.supabase as any)
+      .from("expenses")
+      .update({ status: data.status })
+      .eq("id", data.id)
+      .select("*")
+      .single();
+    if (error) throw new Error(error.message);
+    return row as Expense;
+  });
+
 
 export const deleteExpense = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
