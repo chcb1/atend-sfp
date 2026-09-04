@@ -253,8 +253,35 @@ export const getForecastStats = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     const list = (rows ?? []) as Appointment[];
 
-    const sum = (items: Appointment[]): ForecastWindow =>
-      items.reduce(
+    // Saídas previstas: despesas pendentes com vencimento nas próximas janelas
+    const isoDate = (d: Date) =>
+      d.toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
+    const todayKey = isoDate(now);
+    const key7 = isoDate(in7);
+    const key30 = isoDate(in30);
+
+    const { data: expRows } = await (context.supabase as any)
+      .from("expenses")
+      .select("amount, expense_date")
+      .eq("status", "pendente")
+      .gte("expense_date", todayKey)
+      .lte("expense_date", key30);
+
+    const pending = (expRows ?? []) as { amount: number; expense_date: string }[];
+    const sumExpenses = (until: string) =>
+      pending
+        .filter((e) => e.expense_date <= until)
+        .reduce(
+          (acc, e) => {
+            acc.expenseTotal += Number(e.amount);
+            acc.expenseCount += 1;
+            return acc;
+          },
+          { expenseTotal: 0, expenseCount: 0 },
+        );
+
+    const sum = (items: Appointment[], until: string): ForecastWindow => {
+      const base = items.reduce(
         (acc, r) => {
           acc.gross += Number(r.gross_value);
           acc.net += Number(r.net_value);
@@ -263,12 +290,15 @@ export const getForecastStats = createServerFn({ method: "GET" })
         },
         { gross: 0, net: 0, count: 0 },
       );
+      return { ...base, ...sumExpenses(until) };
+    };
 
     const within7 = list.filter((r) => r.scheduled_at && new Date(r.scheduled_at) <= in7);
 
     return {
-      next7: sum(within7),
-      next30: sum(list),
+      next7: sum(within7, key7),
+      next30: sum(list, key30),
+
       upcoming: list.slice(0, 5).map((r) => ({
         id: r.id,
         scheduled_at: r.scheduled_at ?? "",
