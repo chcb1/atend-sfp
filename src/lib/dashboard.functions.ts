@@ -188,11 +188,15 @@ export const getDashboardStats = createServerFn({ method: "GET" })
       { gross: 0, expenses: 0, tax: 0, net: 0 },
     );
 
-    // Despesas avulsas no período selecionado
-    let expQ = (context.supabase as any).from("expenses").select("amount, expense_date");
+    // Despesas (somente pagas) no período selecionado
+    let expQ = (context.supabase as any)
+      .from("expenses")
+      .select("amount, expense_date")
+      .eq("status", "paga");
     if (data?.from) expQ = expQ.gte("expense_date", data.from);
     if (data?.to) expQ = expQ.lte("expense_date", data.to);
     const { data: expRows } = await expQ;
+
     const standaloneExpenses = ((expRows ?? []) as { amount: number }[]).reduce(
       (s, r) => s + Number(r.amount),
       0,
