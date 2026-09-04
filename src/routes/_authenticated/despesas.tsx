@@ -7,11 +7,14 @@ import {
   createExpense,
   updateExpense,
   deleteExpense,
+  setExpenseStatus,
 } from "@/lib/expenses.functions";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CurrencyInput } from "@/components/ui/currency-input";
+
 import {
   Select,
   SelectContent,
