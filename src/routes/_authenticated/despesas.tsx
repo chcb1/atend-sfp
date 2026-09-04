@@ -59,16 +59,16 @@ export const Route = createFileRoute("/_authenticated/despesas")({
   component: ExpensesPage,
   head: () => ({
     meta: [
-      { title: "Despesas avulsas | Fisio App" },
+      { title: "Despesas | Fisio App" },
       {
         name: "description",
         content:
-          "Cadastre e acompanhe despesas avulsas da clínica, como material, equipamento e aluguel.",
+          "Cadastre e acompanhe as despesas da clínica, como material, equipamento e aluguel.",
       },
-      { property: "og:title", content: "Despesas avulsas | Fisio App" },
+      { property: "og:title", content: "Despesas | Fisio App" },
       {
         property: "og:description",
-        content: "Controle de despesas avulsas separadas dos custos de cada atendimento.",
+        content: "Controle das despesas da clínica, com situação de pagamento.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -77,6 +77,7 @@ export const Route = createFileRoute("/_authenticated/despesas")({
   errorComponent: ({ error }) => <div className="text-destructive">{error.message}</div>,
   notFoundComponent: () => <div>Nada encontrado.</div>,
 });
+
 
 function todayISO() {
   return new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
