@@ -464,7 +464,9 @@ function ExpenseForm({
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="e-amount">Valor *</Label>
+              <Label htmlFor="e-amount">
+                {mode === "parcelado" ? "Valor total *" : mode === "recorrente" ? "Valor por mês *" : "Valor *"}
+              </Label>
               <CurrencyInput
                 id="e-amount"
                 value={parseFloat(amount) || 0}
@@ -473,7 +475,9 @@ function ExpenseForm({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="e-date">Data *</Label>
+              <Label htmlFor="e-date">
+                {isSeries ? (mode === "parcelado" ? "Primeira parcela *" : "Primeira ocorrência *") : "Data *"}
+              </Label>
               <Input
                 id="e-date"
                 type="date"
@@ -483,24 +487,49 @@ function ExpenseForm({
               />
             </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="e-status">Situação</Label>
-            <Select value={status || autoStatus} onValueChange={(v) => setStatus(v as ExpenseStatus)}>
-              <SelectTrigger id="e-status">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {(["pendente", "paga", "cancelada"] as ExpenseStatus[]).map((s) => (
-                  <SelectItem key={s} value={s}>
-                    {STATUS_LABEL[s]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground">
-              Sugerido pela data: {STATUS_LABEL[autoStatus]}
-            </p>
-          </div>
+          {isSeries && (
+            <div className="space-y-2">
+              <Label htmlFor="e-occ">
+                {mode === "parcelado" ? "Número de parcelas *" : "Quantidade de meses *"}
+              </Label>
+              <Input
+                id="e-occ"
+                type="number"
+                min={2}
+                max={120}
+                value={occurrences}
+                onChange={(ev) => setOccurrences(ev.target.value)}
+                required
+              />
+              <p className="text-xs text-muted-foreground">
+                {mode === "parcelado"
+                  ? `${n}x de aprox. ${brl(perInstallment)} — a última parcela ajusta o arredondamento.`
+                  : `${n} lançamentos mensais de ${brl(parsedAmount)}.`}{" "}
+                A situação de cada lançamento é definida pela data (futura = pendente).
+              </p>
+            </div>
+          )}
+          {!isSeries && (
+            <div className="space-y-2">
+              <Label htmlFor="e-status">Situação</Label>
+              <Select value={status || autoStatus} onValueChange={(v) => setStatus(v as ExpenseStatus)}>
+                <SelectTrigger id="e-status">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {(["pendente", "paga", "cancelada"] as ExpenseStatus[]).map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {STATUS_LABEL[s]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Sugerido pela data: {STATUS_LABEL[autoStatus]}
+              </p>
+            </div>
+          )}
+
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
