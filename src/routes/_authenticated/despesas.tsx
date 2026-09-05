@@ -105,6 +105,23 @@ function formatDate(d: string) {
   return `${day}/${m}/${y}`;
 }
 
+type StatusFilter = "all" | ExpenseStatus;
+type CategoryFilter = "all" | string;
+type SortKey =
+  | "recent"
+  | "due-asc"
+  | "due-desc"
+  | "value-desc"
+  | "value-asc";
+
+const SORT_OPTIONS: { value: SortKey; label: string }[] = [
+  { value: "recent", label: "Mais recente primeiro" },
+  { value: "due-asc", label: "Vencimento (mais próximo primeiro)" },
+  { value: "due-desc", label: "Vencimento (mais distante primeiro)" },
+  { value: "value-desc", label: "Valor (maior primeiro)" },
+  { value: "value-asc", label: "Valor (menor primeiro)" },
+];
+
 function ExpensesPage() {
   const qc = useQueryClient();
   const list = useServerFn(listExpenses);
@@ -119,6 +136,9 @@ function ExpensesPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [groupFilter, setGroupFilter] = useState<string | null>(null);
   const [cancelGroupId, setCancelGroupId] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
+  const [sortKey, setSortKey] = useState<SortKey>("recent");
   const cancelRemaining = useServerFn(cancelRemainingInstallments);
 
   const statusMutation = useMutation({
@@ -148,13 +168,70 @@ function ExpensesPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const visible = groupFilter
-    ? expenses.filter((e) => e.recurrence_group_id === groupFilter)
-    : expenses;
+  const visible = useMemo(() => {
+    let rows = expenses;
+    if (groupFilter) {
+      rows = rows.filter((e) => e.recurrence_group_id === groupFilter);
+    }
+    if (statusFilter !== "all") {
+      rows = rows.filter((e) => e.status === statusFilter);
+    }
+    if (categoryFilter !== "all") {
+      rows = rows.filter((e) => (e.category || "Outros") === categoryFilter);
+    }
+    const sorted = [...rows];
+    switch (sortKey) {
+      case "due-asc":
+        sorted.sort(
+          (a, b) =>
+            a.expense_date.localeCompare(b.expense_date) ||
+            a.created_at.localeCompare(b.created_at),
+        );
+        break;
+      case "due-desc":
+        sorted.sort(
+          (a, b) =>
+            b.expense_date.localeCompare(a.expense_date) ||
+            b.created_at.localeCompare(a.created_at),
+        );
+        break;
+      case "value-desc":
+        sorted.sort((a, b) => Number(b.amount) - Number(a.amount));
+        break;
+      case "value-asc":
+        sorted.sort((a, b) => Number(a.amount) - Number(b.amount));
+        break;
+      default:
+        // recent: expense_date desc, then created_at desc (current behavior)
+        sorted.sort(
+          (a, b) =>
+            b.expense_date.localeCompare(a.expense_date) ||
+            b.created_at.localeCompare(a.created_at),
+        );
+        break;
+    }
+    return sorted;
+  }, [expenses, groupFilter, statusFilter, categoryFilter, sortKey]);
 
-  const total = visible
+  const totalPaid = visible
     .filter((e) => e.status === "paga")
     .reduce((s, e) => s + Number(e.amount), 0);
+  const totalPending = visible
+    .filter((e) => e.status === "pendente")
+    .reduce((s, e) => s + Number(e.amount), 0);
+
+  const filtersActive =
+    statusFilter !== "all" ||
+    categoryFilter !== "all" ||
+    sortKey !== "recent" ||
+    !!groupFilter;
+
+  function clearFilters() {
+    setStatusFilter("all");
+    setCategoryFilter("all");
+    setSortKey("recent");
+    setGroupFilter(null);
+  }
 
 
   return (
