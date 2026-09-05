@@ -333,12 +333,15 @@ function ExpenseForm({
   onSaved?: () => void;
 }) {
   const create = useServerFn(createExpense);
+  const createRecurring = useServerFn(createRecurringExpense);
   const update = useServerFn(updateExpense);
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState(todayISO());
   const [status, setStatus] = useState<ExpenseStatus | "">("");
+  const [mode, setMode] = useState<"unico" | "recorrente" | "parcelado">("unico");
+  const [occurrences, setOccurrences] = useState("2");
 
   useEffect(() => {
     if (open) {
@@ -347,17 +350,36 @@ function ExpenseForm({
       setAmount(expense ? String(expense.amount) : "");
       setDate(expense?.expense_date ?? todayISO());
       setStatus(expense?.status ?? "");
+      setMode("unico");
+      setOccurrences("2");
     }
   }, [open, expense]);
 
   const autoStatus: ExpenseStatus = date > todayISO() ? "pendente" : "paga";
+  const isSeries = !expense && mode !== "unico";
+  const n = Math.max(2, parseInt(occurrences) || 2);
+  const parsedAmount = parseFloat(amount) || 0;
+  const perInstallment =
+    mode === "parcelado" ? Math.floor((parsedAmount * 100) / n) / 100 : parsedAmount;
 
   const mutation = useMutation({
     mutationFn: async () => {
+      if (isSeries) {
+        return createRecurring({
+          data: {
+            mode: mode as "recorrente" | "parcelado",
+            description,
+            category: category || null,
+            amount: parsedAmount,
+            expense_date: date,
+            occurrences: n,
+          },
+        });
+      }
       const payload = {
         description,
         category: category || null,
-        amount: parseFloat(amount) || 0,
+        amount: parsedAmount,
         expense_date: date,
         status: (status || autoStatus) as ExpenseStatus,
       };
@@ -365,12 +387,15 @@ function ExpenseForm({
       return create({ data: payload });
     },
     onSuccess: () => {
-      toast.success(expense ? "Despesa atualizada" : "Despesa cadastrada");
+      toast.success(
+        expense ? "Despesa atualizada" : isSeries ? `${n} lançamentos criados` : "Despesa cadastrada",
+      );
       onSaved?.();
       onOpenChange(false);
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
