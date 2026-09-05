@@ -55,7 +55,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Pencil, Trash2, Receipt, CheckCircle2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Receipt, CheckCircle2, CalendarX } from "lucide-react";
 import { toast } from "sonner";
 import type { Expense, ExpenseStatus } from "@/lib/types";
 import { brl } from "@/lib/format";
