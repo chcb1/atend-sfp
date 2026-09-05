@@ -117,6 +117,9 @@ function ExpensesPage() {
   const [editOpen, setEditOpen] = useState(false);
   const [editing, setEditing] = useState<Expense | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [groupFilter, setGroupFilter] = useState<string | null>(null);
+  const [cancelGroupId, setCancelGroupId] = useState<string | null>(null);
+  const cancelRemaining = useServerFn(cancelRemainingInstallments);
 
   const statusMutation = useMutation({
     mutationFn: (v: { id: string; status: ExpenseStatus }) => changeStatus({ data: v }),
@@ -129,7 +132,27 @@ function ExpensesPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const total = expenses
+  const cancelGroupMutation = useMutation({
+    mutationFn: (id: string) => cancelRemaining({ data: { recurrence_group_id: id } }),
+    onSuccess: (r) => {
+      toast.success(
+        r.cancelled > 0
+          ? `${r.cancelled} parcela(s) futura(s) cancelada(s)`
+          : "Nenhuma parcela futura pendente para cancelar",
+      );
+      setCancelGroupId(null);
+      qc.invalidateQueries({ queryKey: ["expenses"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+      qc.invalidateQueries({ queryKey: ["forecast"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const visible = groupFilter
+    ? expenses.filter((e) => e.recurrence_group_id === groupFilter)
+    : expenses;
+
+  const total = visible
     .filter((e) => e.status === "paga")
     .reduce((s, e) => s + Number(e.amount), 0);
 
@@ -153,11 +176,20 @@ function ExpensesPage() {
         </Button>
       </div>
 
+      {groupFilter && (
+        <div className="flex items-center gap-2 text-sm">
+          <Badge variant="secondary">Mostrando apenas um grupo de parcelas</Badge>
+          <Button variant="link" size="sm" onClick={() => setGroupFilter(null)}>
+            Ver todas as despesas
+          </Button>
+        </div>
+      )}
+
       <Card>
         <CardContent className="p-0">
           {isLoading ? (
             <div className="p-8 text-center text-sm text-muted-foreground">Carregando...</div>
-          ) : expenses.length === 0 ? (
+          ) : visible.length === 0 ? (
             <div className="flex flex-col items-center gap-2 p-12 text-center">
               <Receipt className="h-8 w-8 text-muted-foreground" />
               <p className="text-sm text-muted-foreground">Nenhuma despesa cadastrada ainda.</p>
@@ -171,14 +203,28 @@ function ExpensesPage() {
                   <TableHead>Categoria</TableHead>
                   <TableHead>Situação</TableHead>
                   <TableHead className="text-right">Valor</TableHead>
-                  <TableHead className="w-32 text-right">Ações</TableHead>
+                  <TableHead className="w-40 text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {expenses.map((e) => (
+                {visible.map((e) => (
                   <TableRow key={e.id}>
                     <TableCell className="tabular-nums">{formatDate(e.expense_date)}</TableCell>
-                    <TableCell className="font-medium">{e.description}</TableCell>
+                    <TableCell className="font-medium">
+                      {e.description}
+                      {e.installment_total ? (
+                        <button
+                          type="button"
+                          className="ml-2 align-middle"
+                          title="Ver todas as parcelas deste lançamento"
+                          onClick={() => setGroupFilter(e.recurrence_group_id)}
+                        >
+                          <Badge variant="secondary" className="tabular-nums">
+                            {e.installment_number}/{e.installment_total}
+                          </Badge>
+                        </button>
+                      ) : null}
+                    </TableCell>
                     <TableCell className="text-muted-foreground">{e.category || "—"}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className={STATUS_CLASS[e.status]}>
@@ -196,6 +242,16 @@ function ExpensesPage() {
                           onClick={() => statusMutation.mutate({ id: e.id, status: "paga" })}
                         >
                           <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                        </Button>
+                      )}
+                      {e.recurrence_group_id && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          title="Cancelar parcelas restantes"
+                          onClick={() => setCancelGroupId(e.recurrence_group_id)}
+                        >
+                          <CalendarX className="h-4 w-4 text-amber-600" />
                         </Button>
                       )}
                       <Button
@@ -226,6 +282,27 @@ function ExpensesPage() {
           )}
         </CardContent>
       </Card>
+
+      <AlertDialog open={!!cancelGroupId} onOpenChange={(o) => !o && setCancelGroupId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancelar parcelas restantes?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Apenas as parcelas futuras ainda pendentes serão canceladas. As já pagas permanecem
+              intactas.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Voltar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => cancelGroupId && cancelGroupMutation.mutate(cancelGroupId)}
+            >
+              Cancelar parcelas
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
 
 
       <ExpenseForm
