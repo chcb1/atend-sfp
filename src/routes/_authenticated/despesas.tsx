@@ -5,6 +5,8 @@ import { useServerFn } from "@tanstack/react-start";
 import {
   listExpenses,
   createExpense,
+  createRecurringExpense,
+  cancelRemainingInstallments,
   updateExpense,
   deleteExpense,
   setExpenseStatus,
@@ -53,7 +55,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Pencil, Trash2, Receipt, CheckCircle2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Receipt, CheckCircle2, CalendarX } from "lucide-react";
 import { toast } from "sonner";
 import type { Expense, ExpenseStatus } from "@/lib/types";
 import { brl } from "@/lib/format";
@@ -115,6 +117,9 @@ function ExpensesPage() {
   const [editOpen, setEditOpen] = useState(false);
   const [editing, setEditing] = useState<Expense | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [groupFilter, setGroupFilter] = useState<string | null>(null);
+  const [cancelGroupId, setCancelGroupId] = useState<string | null>(null);
+  const cancelRemaining = useServerFn(cancelRemainingInstallments);
 
   const statusMutation = useMutation({
     mutationFn: (v: { id: string; status: ExpenseStatus }) => changeStatus({ data: v }),
@@ -127,7 +132,27 @@ function ExpensesPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const total = expenses
+  const cancelGroupMutation = useMutation({
+    mutationFn: (id: string) => cancelRemaining({ data: { recurrence_group_id: id } }),
+    onSuccess: (r) => {
+      toast.success(
+        r.cancelled > 0
+          ? `${r.cancelled} parcela(s) futura(s) cancelada(s)`
+          : "Nenhuma parcela futura pendente para cancelar",
+      );
+      setCancelGroupId(null);
+      qc.invalidateQueries({ queryKey: ["expenses"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+      qc.invalidateQueries({ queryKey: ["forecast"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const visible = groupFilter
+    ? expenses.filter((e) => e.recurrence_group_id === groupFilter)
+    : expenses;
+
+  const total = visible
     .filter((e) => e.status === "paga")
     .reduce((s, e) => s + Number(e.amount), 0);
 
@@ -151,11 +176,20 @@ function ExpensesPage() {
         </Button>
       </div>
 
+      {groupFilter && (
+        <div className="flex items-center gap-2 text-sm">
+          <Badge variant="secondary">Mostrando apenas um grupo de parcelas</Badge>
+          <Button variant="link" size="sm" onClick={() => setGroupFilter(null)}>
+            Ver todas as despesas
+          </Button>
+        </div>
+      )}
+
       <Card>
         <CardContent className="p-0">
           {isLoading ? (
             <div className="p-8 text-center text-sm text-muted-foreground">Carregando...</div>
-          ) : expenses.length === 0 ? (
+          ) : visible.length === 0 ? (
             <div className="flex flex-col items-center gap-2 p-12 text-center">
               <Receipt className="h-8 w-8 text-muted-foreground" />
               <p className="text-sm text-muted-foreground">Nenhuma despesa cadastrada ainda.</p>
@@ -169,14 +203,28 @@ function ExpensesPage() {
                   <TableHead>Categoria</TableHead>
                   <TableHead>Situação</TableHead>
                   <TableHead className="text-right">Valor</TableHead>
-                  <TableHead className="w-32 text-right">Ações</TableHead>
+                  <TableHead className="w-40 text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {expenses.map((e) => (
+                {visible.map((e) => (
                   <TableRow key={e.id}>
                     <TableCell className="tabular-nums">{formatDate(e.expense_date)}</TableCell>
-                    <TableCell className="font-medium">{e.description}</TableCell>
+                    <TableCell className="font-medium">
+                      {e.description}
+                      {e.installment_total ? (
+                        <button
+                          type="button"
+                          className="ml-2 align-middle"
+                          title="Ver todas as parcelas deste lançamento"
+                          onClick={() => setGroupFilter(e.recurrence_group_id)}
+                        >
+                          <Badge variant="secondary" className="tabular-nums">
+                            {e.installment_number}/{e.installment_total}
+                          </Badge>
+                        </button>
+                      ) : null}
+                    </TableCell>
                     <TableCell className="text-muted-foreground">{e.category || "—"}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className={STATUS_CLASS[e.status]}>
@@ -194,6 +242,16 @@ function ExpensesPage() {
                           onClick={() => statusMutation.mutate({ id: e.id, status: "paga" })}
                         >
                           <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                        </Button>
+                      )}
+                      {e.recurrence_group_id && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          title="Cancelar parcelas restantes"
+                          onClick={() => setCancelGroupId(e.recurrence_group_id)}
+                        >
+                          <CalendarX className="h-4 w-4 text-amber-600" />
                         </Button>
                       )}
                       <Button
@@ -225,6 +283,27 @@ function ExpensesPage() {
         </CardContent>
       </Card>
 
+      <AlertDialog open={!!cancelGroupId} onOpenChange={(o) => !o && setCancelGroupId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancelar parcelas restantes?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Apenas as parcelas futuras ainda pendentes serão canceladas. As já pagas permanecem
+              intactas.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Voltar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => cancelGroupId && cancelGroupMutation.mutate(cancelGroupId)}
+            >
+              Cancelar parcelas
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+
 
       <ExpenseForm
         open={editOpen}
@@ -254,12 +333,15 @@ function ExpenseForm({
   onSaved?: () => void;
 }) {
   const create = useServerFn(createExpense);
+  const createRecurring = useServerFn(createRecurringExpense);
   const update = useServerFn(updateExpense);
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState(todayISO());
   const [status, setStatus] = useState<ExpenseStatus | "">("");
+  const [mode, setMode] = useState<"unico" | "recorrente" | "parcelado">("unico");
+  const [occurrences, setOccurrences] = useState("2");
 
   useEffect(() => {
     if (open) {
@@ -268,17 +350,36 @@ function ExpenseForm({
       setAmount(expense ? String(expense.amount) : "");
       setDate(expense?.expense_date ?? todayISO());
       setStatus(expense?.status ?? "");
+      setMode("unico");
+      setOccurrences("2");
     }
   }, [open, expense]);
 
   const autoStatus: ExpenseStatus = date > todayISO() ? "pendente" : "paga";
+  const isSeries = !expense && mode !== "unico";
+  const n = Math.max(2, parseInt(occurrences) || 2);
+  const parsedAmount = parseFloat(amount) || 0;
+  const perInstallment =
+    mode === "parcelado" ? Math.floor((parsedAmount * 100) / n) / 100 : parsedAmount;
 
   const mutation = useMutation({
     mutationFn: async () => {
+      if (isSeries) {
+        return createRecurring({
+          data: {
+            mode: mode as "recorrente" | "parcelado",
+            description,
+            category: category || null,
+            amount: parsedAmount,
+            expense_date: date,
+            occurrences: n,
+          },
+        });
+      }
       const payload = {
         description,
         category: category || null,
-        amount: parseFloat(amount) || 0,
+        amount: parsedAmount,
         expense_date: date,
         status: (status || autoStatus) as ExpenseStatus,
       };
@@ -286,12 +387,15 @@ function ExpenseForm({
       return create({ data: payload });
     },
     onSuccess: () => {
-      toast.success(expense ? "Despesa atualizada" : "Despesa cadastrada");
+      toast.success(
+        expense ? "Despesa atualizada" : isSeries ? `${n} lançamentos criados` : "Despesa cadastrada",
+      );
       onSaved?.();
       onOpenChange(false);
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -311,6 +415,21 @@ function ExpenseForm({
           }}
           className="space-y-4"
         >
+          {!expense && (
+            <div className="space-y-2">
+              <Label htmlFor="e-mode">Tipo de lançamento</Label>
+              <Select value={mode} onValueChange={(v) => setMode(v as typeof mode)}>
+                <SelectTrigger id="e-mode">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="unico">Único</SelectItem>
+                  <SelectItem value="recorrente">Recorrente (mesmo valor por mês)</SelectItem>
+                  <SelectItem value="parcelado">Parcelado (valor total dividido)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="e-desc">Descrição *</Label>
             <Input
@@ -345,7 +464,9 @@ function ExpenseForm({
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="e-amount">Valor *</Label>
+              <Label htmlFor="e-amount">
+                {mode === "parcelado" ? "Valor total *" : mode === "recorrente" ? "Valor por mês *" : "Valor *"}
+              </Label>
               <CurrencyInput
                 id="e-amount"
                 value={parseFloat(amount) || 0}
@@ -354,7 +475,9 @@ function ExpenseForm({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="e-date">Data *</Label>
+              <Label htmlFor="e-date">
+                {isSeries ? (mode === "parcelado" ? "Primeira parcela *" : "Primeira ocorrência *") : "Data *"}
+              </Label>
               <Input
                 id="e-date"
                 type="date"
@@ -364,24 +487,49 @@ function ExpenseForm({
               />
             </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="e-status">Situação</Label>
-            <Select value={status || autoStatus} onValueChange={(v) => setStatus(v as ExpenseStatus)}>
-              <SelectTrigger id="e-status">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {(["pendente", "paga", "cancelada"] as ExpenseStatus[]).map((s) => (
-                  <SelectItem key={s} value={s}>
-                    {STATUS_LABEL[s]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground">
-              Sugerido pela data: {STATUS_LABEL[autoStatus]}
-            </p>
-          </div>
+          {isSeries && (
+            <div className="space-y-2">
+              <Label htmlFor="e-occ">
+                {mode === "parcelado" ? "Número de parcelas *" : "Quantidade de meses *"}
+              </Label>
+              <Input
+                id="e-occ"
+                type="number"
+                min={2}
+                max={120}
+                value={occurrences}
+                onChange={(ev) => setOccurrences(ev.target.value)}
+                required
+              />
+              <p className="text-xs text-muted-foreground">
+                {mode === "parcelado"
+                  ? `${n}x de aprox. ${brl(perInstallment)} — a última parcela ajusta o arredondamento.`
+                  : `${n} lançamentos mensais de ${brl(parsedAmount)}.`}{" "}
+                A situação de cada lançamento é definida pela data (futura = pendente).
+              </p>
+            </div>
+          )}
+          {!isSeries && (
+            <div className="space-y-2">
+              <Label htmlFor="e-status">Situação</Label>
+              <Select value={status || autoStatus} onValueChange={(v) => setStatus(v as ExpenseStatus)}>
+                <SelectTrigger id="e-status">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {(["pendente", "paga", "cancelada"] as ExpenseStatus[]).map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {STATUS_LABEL[s]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Sugerido pela data: {STATUS_LABEL[autoStatus]}
+              </p>
+            </div>
+          )}
+
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
