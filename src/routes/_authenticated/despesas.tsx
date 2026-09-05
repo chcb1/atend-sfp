@@ -415,6 +415,21 @@ function ExpenseForm({
           }}
           className="space-y-4"
         >
+          {!expense && (
+            <div className="space-y-2">
+              <Label htmlFor="e-mode">Tipo de lançamento</Label>
+              <Select value={mode} onValueChange={(v) => setMode(v as typeof mode)}>
+                <SelectTrigger id="e-mode">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="unico">Único</SelectItem>
+                  <SelectItem value="recorrente">Recorrente (mesmo valor por mês)</SelectItem>
+                  <SelectItem value="parcelado">Parcelado (valor total dividido)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="e-desc">Descrição *</Label>
             <Input
