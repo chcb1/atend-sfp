@@ -349,9 +349,18 @@ function ExpensesPage() {
                 ))}
                 <TableRow>
                   <TableCell colSpan={4} className="font-medium">
-                    Total pago no período listado
+                    Totais da lista filtrada
                   </TableCell>
-                  <TableCell className="text-right font-semibold tabular-nums">{brl(total)}</TableCell>
+                  <TableCell className="text-right tabular-nums">
+                    <div className="flex flex-col items-end gap-0.5">
+                      <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
+                        Pago: {brl(totalPaid)}
+                      </span>
+                      <span className="text-amber-600 dark:text-amber-400 font-semibold">
+                        Pendente: {brl(totalPending)}
+                      </span>
+                    </div>
+                  </TableCell>
                   <TableCell />
                 </TableRow>
               </TableBody>
