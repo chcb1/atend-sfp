@@ -253,14 +253,68 @@ function ExpensesPage() {
         </Button>
       </div>
 
-      {groupFilter && (
-        <div className="flex items-center gap-2 text-sm">
-          <Badge variant="secondary">Mostrando apenas um grupo de parcelas</Badge>
-          <Button variant="link" size="sm" onClick={() => setGroupFilter(null)}>
-            Ver todas as despesas
-          </Button>
+      <div className="flex flex-wrap items-end gap-3">
+        <div className="space-y-1">
+          <Label htmlFor="f-status" className="text-xs text-muted-foreground">Situação</Label>
+          <Select
+            value={statusFilter}
+            onValueChange={(v) => setStatusFilter(v as StatusFilter)}
+          >
+            <SelectTrigger id="f-status" className="w-[160px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="pendente">Pendente</SelectItem>
+              <SelectItem value="paga">Paga</SelectItem>
+              <SelectItem value="cancelada">Cancelada</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-      )}
+        <div className="space-y-1">
+          <Label htmlFor="f-cat" className="text-xs text-muted-foreground">Categoria</Label>
+          <Select
+            value={categoryFilter}
+            onValueChange={(v) => setCategoryFilter(v)}
+          >
+            <SelectTrigger id="f-cat" className="w-[200px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas</SelectItem>
+              {CATEGORIES.map((c) => (
+                <SelectItem key={c} value={c}>{c}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1">
+          <Label htmlFor="f-sort" className="text-xs text-muted-foreground">Ordenação</Label>
+          <Select value={sortKey} onValueChange={(v) => setSortKey(v as SortKey)}>
+            <SelectTrigger id="f-sort" className="w-[240px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {SORT_OPTIONS.map((o) => (
+                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        {groupFilter && (
+          <div className="flex items-center gap-1">
+            <Badge variant="secondary">Grupo de parcelas</Badge>
+            <Button variant="link" size="sm" onClick={() => setGroupFilter(null)}>
+              Limpar grupo
+            </Button>
+          </div>
+        )}
+        {filtersActive && (
+          <Button variant="ghost" size="sm" onClick={clearFilters}>
+            Limpar filtros
+          </Button>
+        )}
+      </div>
 
       <Card>
         <CardContent className="p-0">
