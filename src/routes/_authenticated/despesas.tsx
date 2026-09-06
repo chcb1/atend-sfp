@@ -214,11 +214,11 @@ function ExpensesPage() {
   }, [expenses, groupFilter, statusFilter, categoryFilter, sortKey]);
 
   const totalPaid = visible
-    .filter((e) => e.status === "paga")
-    .reduce((s, e) => s + Number(e.amount), 0);
+    .filter((e: Expense) => e.status === "paga")
+    .reduce((s: number, e: Expense) => s + Number(e.amount), 0);
   const totalPending = visible
-    .filter((e) => e.status === "pendente")
-    .reduce((s, e) => s + Number(e.amount), 0);
+    .filter((e: Expense) => e.status === "pendente")
+    .reduce((s: number, e: Expense) => s + Number(e.amount), 0);
 
   const filtersActive =
     statusFilter !== "all" ||
