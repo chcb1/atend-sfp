@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -214,11 +214,11 @@ function ExpensesPage() {
   }, [expenses, groupFilter, statusFilter, categoryFilter, sortKey]);
 
   const totalPaid = visible
-    .filter((e) => e.status === "paga")
-    .reduce((s, e) => s + Number(e.amount), 0);
+    .filter((e: Expense) => e.status === "paga")
+    .reduce((s: number, e: Expense) => s + Number(e.amount), 0);
   const totalPending = visible
-    .filter((e) => e.status === "pendente")
-    .reduce((s, e) => s + Number(e.amount), 0);
+    .filter((e: Expense) => e.status === "pendente")
+    .reduce((s: number, e: Expense) => s + Number(e.amount), 0);
 
   const filtersActive =
     statusFilter !== "all" ||
@@ -253,14 +253,68 @@ function ExpensesPage() {
         </Button>
       </div>
 
-      {groupFilter && (
-        <div className="flex items-center gap-2 text-sm">
-          <Badge variant="secondary">Mostrando apenas um grupo de parcelas</Badge>
-          <Button variant="link" size="sm" onClick={() => setGroupFilter(null)}>
-            Ver todas as despesas
-          </Button>
+      <div className="flex flex-wrap items-end gap-3">
+        <div className="space-y-1">
+          <Label htmlFor="f-status" className="text-xs text-muted-foreground">Situação</Label>
+          <Select
+            value={statusFilter}
+            onValueChange={(v) => setStatusFilter(v as StatusFilter)}
+          >
+            <SelectTrigger id="f-status" className="w-[160px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="pendente">Pendente</SelectItem>
+              <SelectItem value="paga">Paga</SelectItem>
+              <SelectItem value="cancelada">Cancelada</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-      )}
+        <div className="space-y-1">
+          <Label htmlFor="f-cat" className="text-xs text-muted-foreground">Categoria</Label>
+          <Select
+            value={categoryFilter}
+            onValueChange={(v) => setCategoryFilter(v)}
+          >
+            <SelectTrigger id="f-cat" className="w-[200px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas</SelectItem>
+              {CATEGORIES.map((c) => (
+                <SelectItem key={c} value={c}>{c}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1">
+          <Label htmlFor="f-sort" className="text-xs text-muted-foreground">Ordenação</Label>
+          <Select value={sortKey} onValueChange={(v) => setSortKey(v as SortKey)}>
+            <SelectTrigger id="f-sort" className="w-[240px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {SORT_OPTIONS.map((o) => (
+                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        {groupFilter && (
+          <div className="flex items-center gap-1">
+            <Badge variant="secondary">Grupo de parcelas</Badge>
+            <Button variant="link" size="sm" onClick={() => setGroupFilter(null)}>
+              Limpar grupo
+            </Button>
+          </div>
+        )}
+        {filtersActive && (
+          <Button variant="ghost" size="sm" onClick={clearFilters}>
+            Limpar filtros
+          </Button>
+        )}
+      </div>
 
       <Card>
         <CardContent className="p-0">
@@ -269,7 +323,11 @@ function ExpensesPage() {
           ) : visible.length === 0 ? (
             <div className="flex flex-col items-center gap-2 p-12 text-center">
               <Receipt className="h-8 w-8 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">Nenhuma despesa cadastrada ainda.</p>
+              <p className="text-sm text-muted-foreground">
+                {filtersActive
+                  ? "Nenhuma despesa corresponde aos filtros selecionados."
+                  : "Nenhuma despesa cadastrada ainda."}
+              </p>
             </div>
           ) : (
             <Table>
@@ -284,7 +342,7 @@ function ExpensesPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {visible.map((e) => (
+                {visible.map((e: Expense) => (
                   <TableRow key={e.id}>
                     <TableCell className="tabular-nums">{formatDate(e.expense_date)}</TableCell>
                     <TableCell className="font-medium">
@@ -349,9 +407,18 @@ function ExpensesPage() {
                 ))}
                 <TableRow>
                   <TableCell colSpan={4} className="font-medium">
-                    Total pago no período listado
+                    Totais da lista filtrada
                   </TableCell>
-                  <TableCell className="text-right font-semibold tabular-nums">{brl(total)}</TableCell>
+                  <TableCell className="text-right tabular-nums">
+                    <div className="flex flex-col items-end gap-0.5">
+                      <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
+                        Pago: {brl(totalPaid)}
+                      </span>
+                      <span className="text-amber-600 dark:text-amber-400 font-semibold">
+                        Pendente: {brl(totalPending)}
+                      </span>
+                    </div>
+                  </TableCell>
                   <TableCell />
                 </TableRow>
               </TableBody>
