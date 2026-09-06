@@ -323,7 +323,11 @@ function ExpensesPage() {
           ) : visible.length === 0 ? (
             <div className="flex flex-col items-center gap-2 p-12 text-center">
               <Receipt className="h-8 w-8 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">Nenhuma despesa cadastrada ainda.</p>
+              <p className="text-sm text-muted-foreground">
+                {filtersActive
+                  ? "Nenhuma despesa corresponde aos filtros selecionados."
+                  : "Nenhuma despesa cadastrada ainda."}
+              </p>
             </div>
           ) : (
             <Table>
