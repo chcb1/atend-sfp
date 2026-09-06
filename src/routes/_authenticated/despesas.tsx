@@ -338,7 +338,7 @@ function ExpensesPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {visible.map((e) => (
+                {visible.map((e: Expense) => (
                   <TableRow key={e.id}>
                     <TableCell className="tabular-nums">{formatDate(e.expense_date)}</TableCell>
                     <TableCell className="font-medium">
