@@ -166,6 +166,7 @@ function AppointmentsList() {
                   <TableHead>Data</TableHead>
                   <TableHead>Cliente</TableHead>
                   <TableHead>Procedimento</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead className="text-right">Bruto</TableHead>
                   <TableHead className="text-right">Despesas</TableHead>
                   <TableHead className="text-right">Imp./Taxa</TableHead>
