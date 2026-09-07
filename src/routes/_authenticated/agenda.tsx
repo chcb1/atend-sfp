@@ -123,7 +123,7 @@ const longDayLabel = new Intl.DateTimeFormat("pt-BR", {
 });
 const timeLabel = new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit" });
 
-import { statusStyles, statusLabels } from "@/lib/appointment-status";
+
 
 type ViewMode = "dia" | "semana" | "mes";
 
