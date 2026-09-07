@@ -22,6 +22,7 @@ const filters = z
     client_id: z.string().uuid().optional(),
     procedure: z.string().optional(),
     search: z.string().optional(),
+    status: z.enum(["agendado", "concluido", "cancelado"]).optional(),
   })
   .optional();
 
@@ -39,6 +40,7 @@ export const listAppointments = createServerFn({ method: "GET" })
     if (data?.to) q = q.lte("date", data.to);
     if (data?.client_id) q = q.eq("client_id", data.client_id);
     if (data?.procedure) q = q.ilike("procedure", `%${data.procedure}%`);
+    if (data?.status) q = q.eq("status", data.status);
     if (data?.search) {
       q = q.or(
         `client_name.ilike.%${data.search}%,procedure.ilike.%${data.search}%`,

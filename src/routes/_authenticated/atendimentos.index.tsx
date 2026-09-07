@@ -3,10 +3,20 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { listAppointments, deleteAppointment } from "@/lib/appointments.functions";
+import type { AppointmentStatus } from "@/lib/types";
+import { statusLabels, statusBadgeClass } from "@/lib/appointment-status";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,6 +29,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Plus, Pencil, Trash2, Download, ClipboardList, Search } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import { brl, formatDateBR } from "@/lib/format";
 import { exportAppointmentsToXlsx } from "@/lib/xlsx-export";
 
@@ -36,16 +47,18 @@ function AppointmentsList() {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [search, setSearch] = useState("");
+  const [status, setStatus] = useState<AppointmentStatus | "">("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const { data: rows = [], isLoading } = useQuery({
-    queryKey: ["appointments", { from, to, search }],
+    queryKey: ["appointments", { from, to, search, status }],
     queryFn: () =>
       list({
         data: {
           from: from || undefined,
           to: to || undefined,
           search: search || undefined,
+          status: status || undefined,
         },
       }),
   });
@@ -105,7 +118,7 @@ function AppointmentsList() {
       </div>
 
       <Card>
-        <CardContent className="grid gap-3 p-4 md:grid-cols-4">
+        <CardContent className="grid gap-3 p-4 md:grid-cols-5">
           <div className="relative md:col-span-2">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -115,6 +128,20 @@ function AppointmentsList() {
               className="pl-9"
             />
           </div>
+          <Select
+            value={status || "all"}
+            onValueChange={(v) => setStatus(v === "all" ? "" : (v as AppointmentStatus))}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="agendado">Agendado</SelectItem>
+              <SelectItem value="concluido">Concluído</SelectItem>
+              <SelectItem value="cancelado">Cancelado</SelectItem>
+            </SelectContent>
+          </Select>
           <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} placeholder="De" />
           <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} placeholder="Até" />
         </CardContent>
@@ -139,6 +166,7 @@ function AppointmentsList() {
                   <TableHead>Data</TableHead>
                   <TableHead>Cliente</TableHead>
                   <TableHead>Procedimento</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead className="text-right">Bruto</TableHead>
                   <TableHead className="text-right">Despesas</TableHead>
                   <TableHead className="text-right">Imp./Taxa</TableHead>
@@ -152,6 +180,18 @@ function AppointmentsList() {
                     <TableCell className="tabular-nums">{formatDateBR(r.date)}</TableCell>
                     <TableCell className="font-medium">{r.client_name}</TableCell>
                     <TableCell className="text-muted-foreground">{r.procedure}</TableCell>
+                    <TableCell>
+                      <Badge
+                        variant="secondary"
+                        className={cn(
+                          "whitespace-nowrap",
+                          statusBadgeClass[r.status],
+                          r.status === "cancelado" && "line-through",
+                        )}
+                      >
+                        {statusLabels[r.status]}
+                      </Badge>
+                    </TableCell>
                     <TableCell className="text-right tabular-nums">{brl(Number(r.gross_value))}</TableCell>
                     <TableCell className="text-right tabular-nums text-muted-foreground">
                       {brl(Number(r.expenses))}
@@ -175,7 +215,7 @@ function AppointmentsList() {
                   </TableRow>
                 ))}
                 <TableRow className="bg-muted/40 font-medium">
-                  <TableCell colSpan={3}>Total ({rows.length})</TableCell>
+                  <TableCell colSpan={4}>Total ({rows.length})</TableCell>
                   <TableCell className="text-right tabular-nums">{brl(totals.gross)}</TableCell>
                   <TableCell className="text-right tabular-nums">{brl(totals.exp)}</TableCell>
                   <TableCell className="text-right tabular-nums">{brl(totals.tax)}</TableCell>

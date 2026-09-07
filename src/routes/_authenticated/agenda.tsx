@@ -58,6 +58,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { brl } from "@/lib/format";
 import type { Appointment, AppointmentStatus } from "@/lib/types";
+import { statusStyles, statusLabels } from "@/lib/appointment-status";
 
 export const Route = createFileRoute("/_authenticated/agenda")({
   component: AgendaPage,
@@ -122,17 +123,7 @@ const longDayLabel = new Intl.DateTimeFormat("pt-BR", {
 });
 const timeLabel = new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit" });
 
-const statusStyles: Record<AppointmentStatus, string> = {
-  agendado: "border-l-4 border-l-blue-500 bg-blue-500/5",
-  concluido: "border-l-4 border-l-emerald-600 bg-emerald-600/5",
-  cancelado: "border-l-4 border-l-muted-foreground bg-muted/40 opacity-70",
-};
 
-const statusLabels: Record<AppointmentStatus, string> = {
-  agendado: "Agendado",
-  concluido: "Concluído",
-  cancelado: "Cancelado",
-};
 
 type ViewMode = "dia" | "semana" | "mes";
 
