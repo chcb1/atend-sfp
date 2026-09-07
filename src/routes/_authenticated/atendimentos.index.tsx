@@ -118,7 +118,7 @@ function AppointmentsList() {
       </div>
 
       <Card>
-        <CardContent className="grid gap-3 p-4 md:grid-cols-4">
+        <CardContent className="grid gap-3 p-4 md:grid-cols-5">
           <div className="relative md:col-span-2">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -128,6 +128,20 @@ function AppointmentsList() {
               className="pl-9"
             />
           </div>
+          <Select
+            value={status || "all"}
+            onValueChange={(v) => setStatus(v === "all" ? "" : (v as AppointmentStatus))}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="agendado">Agendado</SelectItem>
+              <SelectItem value="concluido">Concluído</SelectItem>
+              <SelectItem value="cancelado">Cancelado</SelectItem>
+            </SelectContent>
+          </Select>
           <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} placeholder="De" />
           <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} placeholder="Até" />
         </CardContent>
