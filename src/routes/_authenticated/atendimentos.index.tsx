@@ -47,16 +47,18 @@ function AppointmentsList() {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [search, setSearch] = useState("");
+  const [status, setStatus] = useState<AppointmentStatus | "">("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const { data: rows = [], isLoading } = useQuery({
-    queryKey: ["appointments", { from, to, search }],
+    queryKey: ["appointments", { from, to, search, status }],
     queryFn: () =>
       list({
         data: {
           from: from || undefined,
           to: to || undefined,
           search: search || undefined,
+          status: status || undefined,
         },
       }),
   });
