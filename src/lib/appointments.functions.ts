@@ -22,6 +22,7 @@ const filters = z
     client_id: z.string().uuid().optional(),
     procedure: z.string().optional(),
     search: z.string().optional(),
+    status: z.enum(["agendado", "concluido", "cancelado"]).optional(),
   })
   .optional();
 
