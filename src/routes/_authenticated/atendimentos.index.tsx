@@ -215,7 +215,7 @@ function AppointmentsList() {
                   </TableRow>
                 ))}
                 <TableRow className="bg-muted/40 font-medium">
-                  <TableCell colSpan={3}>Total ({rows.length})</TableCell>
+                  <TableCell colSpan={4}>Total ({rows.length})</TableCell>
                   <TableCell className="text-right tabular-nums">{brl(totals.gross)}</TableCell>
                   <TableCell className="text-right tabular-nums">{brl(totals.exp)}</TableCell>
                   <TableCell className="text-right tabular-nums">{brl(totals.tax)}</TableCell>
