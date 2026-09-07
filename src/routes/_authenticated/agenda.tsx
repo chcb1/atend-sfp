@@ -58,6 +58,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { brl } from "@/lib/format";
 import type { Appointment, AppointmentStatus } from "@/lib/types";
+import { statusStyles, statusLabels } from "@/lib/appointment-status";
 
 export const Route = createFileRoute("/_authenticated/agenda")({
   component: AgendaPage,
