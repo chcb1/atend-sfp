@@ -180,6 +180,18 @@ function AppointmentsList() {
                     <TableCell className="tabular-nums">{formatDateBR(r.date)}</TableCell>
                     <TableCell className="font-medium">{r.client_name}</TableCell>
                     <TableCell className="text-muted-foreground">{r.procedure}</TableCell>
+                    <TableCell>
+                      <Badge
+                        variant="secondary"
+                        className={cn(
+                          "whitespace-nowrap",
+                          statusBadgeClass[r.status],
+                          r.status === "cancelado" && "line-through",
+                        )}
+                      >
+                        {statusLabels[r.status]}
+                      </Badge>
+                    </TableCell>
                     <TableCell className="text-right tabular-nums">{brl(Number(r.gross_value))}</TableCell>
                     <TableCell className="text-right tabular-nums text-muted-foreground">
                       {brl(Number(r.expenses))}
