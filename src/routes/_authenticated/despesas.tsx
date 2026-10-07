@@ -16,6 +16,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CurrencyInput } from "@/components/ui/currency-input";
+import { MultiSelect } from "@/components/ui/multi-select";
+import { thisMonthRange, lastMonthRange } from "@/lib/date-ranges";
 
 import {
   Select,
@@ -105,8 +107,11 @@ function formatDate(d: string) {
   return `${day}/${m}/${y}`;
 }
 
-type StatusFilter = "all" | ExpenseStatus;
-type CategoryFilter = "all" | string;
+const STATUS_OPTIONS = [
+  { value: "pendente", label: "Pendente" },
+  { value: "paga", label: "Paga" },
+  { value: "cancelada", label: "Cancelada" },
+];
 type SortKey =
   | "recent"
   | "due-asc"
@@ -136,8 +141,10 @@ function ExpensesPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [groupFilter, setGroupFilter] = useState<string | null>(null);
   const [cancelGroupId, setCancelGroupId] = useState<string | null>(null);
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
-  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
+  const [statusFilter, setStatusFilter] = useState<string[]>([]);
+  const [categoryFilter, setCategoryFilter] = useState<string[]>([]);
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("recent");
   const cancelRemaining = useServerFn(cancelRemainingInstallments);
 
@@ -173,12 +180,14 @@ function ExpensesPage() {
     if (groupFilter) {
       rows = rows.filter((e) => e.recurrence_group_id === groupFilter);
     }
-    if (statusFilter !== "all") {
-      rows = rows.filter((e) => e.status === statusFilter);
+    if (statusFilter.length) {
+      rows = rows.filter((e) => statusFilter.includes(e.status));
     }
-    if (categoryFilter !== "all") {
-      rows = rows.filter((e) => (e.category || "Outros") === categoryFilter);
+    if (categoryFilter.length) {
+      rows = rows.filter((e) => categoryFilter.includes(e.category || "Outros"));
     }
+    if (dateFrom) rows = rows.filter((e) => e.expense_date >= dateFrom);
+    if (dateTo) rows = rows.filter((e) => e.expense_date <= dateTo);
     const sorted = [...rows];
     switch (sortKey) {
       case "due-asc":
@@ -188,13 +197,6 @@ function ExpensesPage() {
             a.created_at.localeCompare(b.created_at),
         );
         break;
-      case "due-desc":
-        sorted.sort(
-          (a, b) =>
-            b.expense_date.localeCompare(a.expense_date) ||
-            b.created_at.localeCompare(a.created_at),
-        );
-        break;
       case "value-desc":
         sorted.sort((a, b) => Number(b.amount) - Number(a.amount));
         break;
@@ -202,7 +204,6 @@ function ExpensesPage() {
         sorted.sort((a, b) => Number(a.amount) - Number(b.amount));
         break;
       default:
-        // recent: expense_date desc, then created_at desc (current behavior)
         sorted.sort(
           (a, b) =>
             b.expense_date.localeCompare(a.expense_date) ||
@@ -211,7 +212,7 @@ function ExpensesPage() {
         break;
     }
     return sorted;
-  }, [expenses, groupFilter, statusFilter, categoryFilter, sortKey]);
+  }, [expenses, groupFilter, statusFilter, categoryFilter, dateFrom, dateTo, sortKey]);
 
   const totalPaid = visible
     .filter((e: Expense) => e.status === "paga")
@@ -221,14 +222,18 @@ function ExpensesPage() {
     .reduce((s: number, e: Expense) => s + Number(e.amount), 0);
 
   const filtersActive =
-    statusFilter !== "all" ||
-    categoryFilter !== "all" ||
+    statusFilter.length > 0 ||
+    categoryFilter.length > 0 ||
+    !!dateFrom ||
+    !!dateTo ||
     sortKey !== "recent" ||
     !!groupFilter;
 
   function clearFilters() {
-    setStatusFilter("all");
-    setCategoryFilter("all");
+    setStatusFilter([]);
+    setCategoryFilter([]);
+    setDateFrom("");
+    setDateTo("");
     setSortKey("recent");
     setGroupFilter(null);
   }
@@ -256,37 +261,41 @@ function ExpensesPage() {
       <div className="flex flex-wrap items-end gap-3">
         <div className="space-y-1">
           <Label htmlFor="f-status" className="text-xs text-muted-foreground">Situação</Label>
-          <Select
+          <MultiSelect
+            id="f-status"
+            label="Status"
+            className="w-[160px]"
+            options={STATUS_OPTIONS}
             value={statusFilter}
-            onValueChange={(v) => setStatusFilter(v as StatusFilter)}
-          >
-            <SelectTrigger id="f-status" className="w-[160px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="pendente">Pendente</SelectItem>
-              <SelectItem value="paga">Paga</SelectItem>
-              <SelectItem value="cancelada">Cancelada</SelectItem>
-            </SelectContent>
-          </Select>
+            onChange={setStatusFilter}
+          />
         </div>
         <div className="space-y-1">
           <Label htmlFor="f-cat" className="text-xs text-muted-foreground">Categoria</Label>
-          <Select
+          <MultiSelect
+            id="f-cat"
+            label="Categoria"
+            className="w-[200px]"
+            options={CATEGORIES.map((c) => ({ value: c, label: c }))}
             value={categoryFilter}
-            onValueChange={(v) => setCategoryFilter(v)}
-          >
-            <SelectTrigger id="f-cat" className="w-[200px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas</SelectItem>
-              {CATEGORIES.map((c) => (
-                <SelectItem key={c} value={c}>{c}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            onChange={setCategoryFilter}
+          />
+        </div>
+        <div className="space-y-1">
+          <Label htmlFor="f-from" className="text-xs text-muted-foreground">De</Label>
+          <Input id="f-from" type="date" className="w-[150px]" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+        </div>
+        <div className="space-y-1">
+          <Label htmlFor="f-to" className="text-xs text-muted-foreground">Até</Label>
+          <Input id="f-to" type="date" className="w-[150px]" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+        </div>
+        <div className="flex gap-1">
+          <Button variant="outline" size="sm" onClick={() => { const r = thisMonthRange(); setDateFrom(r.from); setDateTo(r.to); }}>
+            Este mês
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => { const r = lastMonthRange(); setDateFrom(r.from); setDateTo(r.to); }}>
+            Mês passado
+          </Button>
         </div>
         <div className="space-y-1">
           <Label htmlFor="f-sort" className="text-xs text-muted-foreground">Ordenação</Label>
