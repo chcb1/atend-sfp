@@ -37,7 +37,7 @@ import { formatDateBR } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/_admin/usuarios")({
   component: UsersAdmin,
-  errorComponent: ({ error }) => <div className="text-destructive">{error.message}</div>,
+  errorComponent: ({ error }) => <div className="text-destructive">{(error as Error).message}</div>,
   notFoundComponent: () => <div>Nada encontrado.</div>,
 });
 

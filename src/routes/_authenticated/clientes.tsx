@@ -33,7 +33,7 @@ import type { Client } from "@/lib/types";
 
 export const Route = createFileRoute("/_authenticated/clientes")({
   component: ClientsPage,
-  errorComponent: ({ error }) => <div className="text-destructive">{error.message}</div>,
+  errorComponent: ({ error }) => <div className="text-destructive">{(error as Error).message}</div>,
   notFoundComponent: () => <div>Nada encontrado.</div>,
 });
 

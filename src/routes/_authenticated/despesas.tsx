@@ -93,7 +93,7 @@ export const Route = createFileRoute("/_authenticated/despesas")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  errorComponent: ({ error }) => <div className="text-destructive">{error.message}</div>,
+  errorComponent: ({ error }) => <div className="text-destructive">{(error as Error).message}</div>,
   notFoundComponent: () => <div>Nada encontrado.</div>,
 });
 
