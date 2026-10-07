@@ -4,18 +4,13 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { listAppointments, deleteAppointment } from "@/lib/appointments.functions";
 import type { AppointmentStatus } from "@/lib/types";
+import { MultiSelect } from "@/components/ui/multi-select";
+import { thisMonthRange, lastMonthRange } from "@/lib/date-ranges";
 import { statusLabels, statusBadgeClass } from "@/lib/appointment-status";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import {
   AlertDialog,
@@ -35,7 +30,7 @@ import { exportAppointmentsToXlsx } from "@/lib/xlsx-export";
 
 export const Route = createFileRoute("/_authenticated/atendimentos/")({
   component: AppointmentsList,
-  errorComponent: ({ error }) => <div className="text-destructive">{error.message}</div>,
+  errorComponent: ({ error }) => <div className="text-destructive">{(error as Error).message}</div>,
   notFoundComponent: () => <div>Nada encontrado.</div>,
 });
 
@@ -47,7 +42,7 @@ function AppointmentsList() {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [search, setSearch] = useState("");
-  const [status, setStatus] = useState<AppointmentStatus | "">("");
+  const [status, setStatus] = useState<AppointmentStatus[]>([]);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const { data: rows = [], isLoading } = useQuery({
@@ -58,7 +53,7 @@ function AppointmentsList() {
           from: from || undefined,
           to: to || undefined,
           search: search || undefined,
-          status: status || undefined,
+          status_in: status.length ? status : undefined,
         },
       }),
   });
@@ -128,22 +123,29 @@ function AppointmentsList() {
               className="pl-9"
             />
           </div>
-          <Select
-            value={status || "all"}
-            onValueChange={(v) => setStatus(v === "all" ? "" : (v as AppointmentStatus))}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="agendado">Agendado</SelectItem>
-              <SelectItem value="concluido">Concluído</SelectItem>
-              <SelectItem value="cancelado">Cancelado</SelectItem>
-            </SelectContent>
-          </Select>
+          <MultiSelect
+            label="Status"
+            options={[
+              { value: "agendado", label: "Agendado" },
+              { value: "concluido", label: "Concluído" },
+              { value: "cancelado", label: "Cancelado" },
+            ]}
+            value={status}
+            onChange={(v) => setStatus(v as AppointmentStatus[])}
+          />
           <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} placeholder="De" />
           <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} placeholder="Até" />
+          <div className="flex gap-2 md:col-span-5">
+            <Button variant="outline" size="sm" onClick={() => { const r = thisMonthRange(); setFrom(r.from); setTo(r.to); }}>
+              Este mês
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => { const r = lastMonthRange(); setFrom(r.from); setTo(r.to); }}>
+              Mês passado
+            </Button>
+            {(from || to) && (
+              <Button variant="ghost" size="sm" onClick={() => { setFrom(""); setTo(""); }}>Limpar datas</Button>
+            )}
+          </div>
         </CardContent>
       </Card>
 

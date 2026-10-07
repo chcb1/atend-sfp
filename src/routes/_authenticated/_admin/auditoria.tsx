@@ -33,7 +33,7 @@ import { ScrollText, Eye } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/_admin/auditoria")({
   component: AuditPage,
-  errorComponent: ({ error }) => <div className="text-destructive">{error.message}</div>,
+  errorComponent: ({ error }) => <div className="text-destructive">{(error as Error).message}</div>,
   notFoundComponent: () => <div>Nada encontrado.</div>,
 });
 
