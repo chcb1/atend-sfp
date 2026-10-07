@@ -197,6 +197,13 @@ function ExpensesPage() {
             a.created_at.localeCompare(b.created_at),
         );
         break;
+      case "due-desc":
+        sorted.sort(
+          (a, b) =>
+            b.expense_date.localeCompare(a.expense_date) ||
+            b.created_at.localeCompare(a.created_at),
+        );
+        break;
       case "value-desc":
         sorted.sort((a, b) => Number(b.amount) - Number(a.amount));
         break;
