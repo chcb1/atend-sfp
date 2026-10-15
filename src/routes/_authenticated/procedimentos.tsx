@@ -38,6 +38,14 @@ import type { Procedure } from "@/lib/types";
 import { brl } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/procedimentos")({
+  head: () => ({ meta: [
+    { title: "Procedimentos — Fisio App" },
+    { name: "description", content: "Gerencie procedimentos e valores de atendimento no Fisio App." },
+    { property: "og:title", content: "Procedimentos — Fisio App" },
+    { property: "og:description", content: "Gerencie procedimentos e valores de atendimento no Fisio App." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: ProceduresPage,
   errorComponent: ({ error }) => <div className="text-destructive">{(error as Error).message}</div>,
   notFoundComponent: () => <div>Nada encontrado.</div>,

@@ -11,6 +11,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
   return (
@@ -86,8 +87,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Fisio App — Controle de Atendimentos" },
       { name: "twitter:description", content: "Controle de atendimentos: cadastro, dashboard e exportação para Excel." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/5b6f42cf-4fd2-4d25-809e-b5100763193c/id-preview-28aafe3e--a601d6e9-2834-48f3-94e4-1419abd91b24.lovable.app-1783907495856.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/5b6f42cf-4fd2-4d25-809e-b5100763193c/id-preview-28aafe3e--a601d6e9-2834-48f3-94e4-1419abd91b24.lovable.app-1783907495856.png" },
     ],
     links: [
       {
@@ -124,6 +123,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
+      <Toaster position="top-center" />
     </QueryClientProvider>
   );
 }

@@ -36,6 +36,14 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/")({
+  head: () => ({ meta: [
+    { title: "Dashboard — Fisio App" },
+    { name: "description", content: "Indicadores realizados, provisão futura e resultado de caixa do Fisio App." },
+    { property: "og:title", content: "Dashboard — Fisio App" },
+    { property: "og:description", content: "Indicadores realizados, provisão futura e resultado de caixa do Fisio App." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: Dashboard,
   errorComponent: ({ error }) => <div className="text-destructive">{(error as Error).message}</div>,
   notFoundComponent: () => <div>Nada encontrado.</div>,

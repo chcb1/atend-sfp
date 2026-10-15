@@ -32,6 +32,14 @@ import { toast } from "sonner";
 import type { Client } from "@/lib/types";
 
 export const Route = createFileRoute("/_authenticated/clientes")({
+  head: () => ({ meta: [
+    { title: "Clientes — Fisio App" },
+    { name: "description", content: "Gerencie os clientes cadastrados no Fisio App." },
+    { property: "og:title", content: "Clientes — Fisio App" },
+    { property: "og:description", content: "Gerencie os clientes cadastrados no Fisio App." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: ClientsPage,
   errorComponent: ({ error }) => <div className="text-destructive">{(error as Error).message}</div>,
   notFoundComponent: () => <div>Nada encontrado.</div>,

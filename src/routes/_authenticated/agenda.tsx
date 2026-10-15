@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -31,16 +31,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -216,8 +206,8 @@ function AgendaPage() {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<FormState>(() => emptyForm(toISODate(new Date())));
   const [formError, setFormError] = useState<string | null>(null);
-  const [cancelTarget, setCancelTarget] = useState<Appointment | null>(null);
-  const [completeTarget, setCompleteTarget] = useState<Appointment | null>(null);
+  const pendingActions = useRef(new Set<string>());
+  const [busyIds, setBusyIds] = useState<Set<string>>(new Set());
 
   function openNew(date?: Date) {
     setFormError(null);
@@ -281,32 +271,68 @@ function AgendaPage() {
     },
   });
 
-  const cancelling = useMutation({
-    mutationFn: (id: string) => cancel({ data: { id } }),
-    onSuccess: () => {
-      toast.success("Agendamento cancelado");
-      setCancelTarget(null);
-      void qc.invalidateQueries({ queryKey: ["schedule"] });
-      void qc.invalidateQueries({ queryKey: ["appointments"] });
-    },
-    onError: (err: unknown) => {
-      toast.error(err instanceof Error ? err.message : "Não foi possível cancelar");
-    },
-  });
+  function refreshStatuses() {
+    for (const key of ["schedule", "appointments", "dashboard", "forecast"]) {
+      void qc.invalidateQueries({ queryKey: [key] });
+    }
+  }
 
-  const completing = useMutation({
-    mutationFn: (id: string) => complete({ data: { id } }),
-    onSuccess: () => {
-      toast.success("Atendimento concluído");
-      setCompleteTarget(null);
-      void qc.invalidateQueries({ queryKey: ["schedule"] });
-      void qc.invalidateQueries({ queryKey: ["appointments"] });
-      void qc.invalidateQueries({ queryKey: ["dashboard"] });
-    },
-    onError: (err: unknown) => {
-      toast.error(err instanceof Error ? err.message : "Não foi possível concluir");
-    },
-  });
+  function setActionBusy(id: string, busy: boolean) {
+    if (busy) pendingActions.current.add(id);
+    else pendingActions.current.delete(id);
+    setBusyIds(new Set(pendingActions.current));
+  }
+
+  async function restoreStatus(previous: Appointment) {
+    if (pendingActions.current.has(previous.id) || !previous.scheduled_at) return;
+    setActionBusy(previous.id, true);
+    try {
+      await update({ data: {
+        id: previous.id,
+        client_id: previous.client_id,
+        client_name: previous.client_name,
+        procedure_id: previous.procedure_id,
+        procedure: previous.procedure,
+        scheduled_at: previous.scheduled_at,
+        duration_minutes: previous.duration_minutes ?? 60,
+        gross_value: Number(previous.gross_value),
+        expenses: Number(previous.expenses),
+        tax: Number(previous.tax),
+        notes: previous.notes,
+        status: previous.status,
+      } });
+      refreshStatuses();
+      toast.success("Ação desfeita");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Não foi possível desfazer");
+    } finally {
+      setActionBusy(previous.id, false);
+    }
+  }
+
+  async function changeStatus(previous: Appointment, next: "concluido" | "cancelado") {
+    if (pendingActions.current.has(previous.id)) return;
+    setActionBusy(previous.id, true);
+    try {
+      await (next === "concluido" ? complete : cancel)({ data: { id: previous.id } });
+      refreshStatuses();
+      const undoExpiresAt = Date.now() + 5000;
+      toast.success(next === "concluido" ? "Atendimento concluído" : "Agendamento cancelado", {
+        id: `appointment-status-${previous.id}`,
+        duration: 5000,
+        action: {
+          label: "Desfazer",
+          onClick: () => {
+            if (Date.now() <= undoExpiresAt) void restoreStatus(previous);
+          },
+        },
+      });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Não foi possível alterar o status");
+    } finally {
+      setActionBusy(previous.id, false);
+    }
+  }
 
   const visible = showCancelled
     ? appointments
@@ -471,7 +497,7 @@ function AgendaPage() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-6 w-6"
+                    className="h-10 w-10 shrink-0"
                     onClick={() => openNew(day)}
                     aria-label="Marcar neste dia"
                   >
@@ -508,11 +534,13 @@ function AgendaPage() {
                       <p className="truncate text-muted-foreground">{a.procedure}</p>
                       <p className="text-muted-foreground">{brl(Number(a.gross_value))}</p>
                       {a.status !== "cancelado" && (
-                        <div className="mt-1 flex gap-1">
+                        <div className="mt-1 flex flex-wrap gap-1">
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-6 w-6"
+                            className="h-10 w-10 shrink-0"
+                            disabled={busyIds.has(a.id)}
+                            title="Editar"
                             onClick={() => openEdit(a)}
                             aria-label="Editar"
                           >
@@ -522,8 +550,10 @@ function AgendaPage() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-6 w-6"
-                              onClick={() => setCompleteTarget(a)}
+                              className="h-10 w-10 shrink-0"
+                              disabled={busyIds.has(a.id)}
+                              title="Concluir"
+                              onClick={() => void changeStatus(a, "concluido")}
                               aria-label="Concluir"
                             >
                               <CheckCircle2 className="h-3.5 w-3.5" />
@@ -533,8 +563,10 @@ function AgendaPage() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-6 w-6"
-                              onClick={() => setCancelTarget(a)}
+                              className="h-10 w-10 shrink-0"
+                              disabled={busyIds.has(a.id)}
+                              title="Cancelar"
+                              onClick={() => void changeStatus(a, "cancelado")}
                               aria-label="Cancelar"
                             >
                               <Ban className="h-3.5 w-3.5" />
@@ -730,49 +762,6 @@ function AgendaPage() {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog
-        open={!!completeTarget}
-        onOpenChange={(o) => !o && setCompleteTarget(null)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Marcar como concluído?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esse valor passará a contar no dashboard consolidado.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Voltar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => completeTarget && completing.mutate(completeTarget.id)}
-            >
-              Confirmar
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <AlertDialog
-        open={!!cancelTarget}
-        onOpenChange={(o) => !o && setCancelTarget(null)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Cancelar agendamento?</AlertDialogTitle>
-            <AlertDialogDescription>
-              O registro é mantido no histórico com status "cancelado".
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Voltar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => cancelTarget && cancelling.mutate(cancelTarget.id)}
-            >
-              Cancelar atendimento
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }
