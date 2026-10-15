@@ -142,3 +142,13 @@
     color: var(--color-foreground);
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  [role="dialog"][data-state],
+  [role="alertdialog"][data-state],
+  [data-state][class*="animate-in"],
+  [data-state][class*="animate-out"] {
+    animation: none !important;
+    transition: none !important;
+  }
+}

@@ -6,7 +6,8 @@ import {
   ClipboardList,
   Users,
   LogOut,
-  Wallet,
+  Activity,
+  MoreHorizontal,
   Stethoscope,
   Shield,
   ScrollText,
@@ -29,6 +30,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 const baseNav = [
   { to: "/agenda", label: "Agenda", icon: CalendarDays },
@@ -53,6 +55,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const logSession = useServerFn(logSessionEvent);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [showWarning, setShowWarning] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const signingOut = useRef(false);
 
   useEffect(() => {
@@ -107,7 +110,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   }
 
   const items = [...(isAdmin ? [dashboardNav] : []), ...baseNav, ...(isAdmin ? adminNav : [])];
-
+  const mobileItems = [baseNav[0], baseNav[1], baseNav[3]];
+  const moreItems = items.filter((item) => !mobileItems.some((mobile) => mobile.to === item.to));
+  const isActive = (to: string) => to === "/" ? location.pathname === "/" : location.pathname.startsWith(to);
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -115,11 +120,11 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="mx-auto flex h-16 max-w-7xl items-center gap-6 px-4">
           <Link to="/" className="flex items-center gap-2 font-semibold">
             <div className="grid h-8 w-8 place-items-center rounded-md bg-primary text-primary-foreground">
-              <Wallet className="h-4 w-4" />
+              <Activity className="h-4 w-4" />
             </div>
             <span>Fisio App</span>
           </Link>
-          <nav className="flex items-center gap-1">
+          <nav aria-label="Navegação principal" className="hidden items-center gap-1 md:flex">
             {items.map((item) => {
               const active =
                 item.to === "/"
@@ -143,7 +148,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               );
             })}
           </nav>
-          <div className="ml-auto flex items-center gap-3">
+          <div className="ml-auto hidden items-center gap-3 md:flex">
             {userEmail && (
               <span className="hidden max-w-[220px] truncate text-sm text-muted-foreground sm:inline">
                 {userEmail}
@@ -156,7 +161,48 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-7xl px-4 py-8">{children}</main>
+      <main className="mx-auto max-w-7xl px-4 pt-8 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-8">{children}</main>
+
+      <nav aria-label="Navegação móvel" className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t bg-background px-2 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] md:hidden">
+        {mobileItems.map((item) => {
+          const Icon = item.icon;
+          return (
+            <Button key={item.to} asChild variant="ghost" className={cn("h-14 min-w-0 flex-col gap-1 px-1 text-xs", isActive(item.to) ? "bg-accent text-accent-foreground" : "text-muted-foreground")}>
+              <Link to={item.to} aria-current={isActive(item.to) ? "page" : undefined}>
+                <Icon className="h-5 w-5" />
+                {item.label}
+              </Link>
+            </Button>
+          );
+        })}
+        <Popover open={moreOpen} onOpenChange={setMoreOpen}>
+          <PopoverTrigger asChild>
+            <Button variant="ghost" className={cn("h-14 min-w-0 flex-col gap-1 px-1 text-xs", moreOpen || moreItems.some((item) => isActive(item.to)) ? "bg-accent text-accent-foreground" : "text-muted-foreground")}>
+              <MoreHorizontal className="h-5 w-5" />
+              Mais
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent side="top" align="end" className="max-h-[70dvh] w-64 overflow-y-auto p-2 md:hidden" aria-label="Mais opções">
+            {moreItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Button key={item.to} asChild variant="ghost" className={cn("h-11 w-full justify-start", isActive(item.to) && "bg-accent text-accent-foreground")}>
+                  <Link to={item.to} onClick={() => setMoreOpen(false)} aria-current={isActive(item.to) ? "page" : undefined}>
+                    <Icon className="h-4 w-4" />
+                    {item.label}
+                  </Link>
+                </Button>
+              );
+            })}
+            <div className="mt-2 border-t pt-2">
+              <Button variant="ghost" className="h-11 w-full justify-start" onClick={() => { setMoreOpen(false); void doSignOut(); }}>
+                <LogOut className="h-4 w-4" />
+                Sair
+              </Button>
+            </div>
+          </PopoverContent>
+        </Popover>
+      </nav>
 
       <Dialog open={showWarning} onOpenChange={(o) => !o && stayConnected()}>
         <DialogContent>

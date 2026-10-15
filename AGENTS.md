@@ -8,3 +8,6 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Derive mobile overflow navigation from the same permission-filtered items as desktop navigation so both surfaces retain identical access visibility.
+- Agenda undo uses existing authenticated scheduling mutations and refreshes schedule, appointments, dashboard, and forecast caches so business rules and totals remain consistent.
