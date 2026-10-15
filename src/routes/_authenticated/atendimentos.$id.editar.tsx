@@ -5,6 +5,14 @@ import { getAppointment } from "@/lib/appointments.functions";
 import { AppointmentForm } from "@/components/appointment-form";
 
 export const Route = createFileRoute("/_authenticated/atendimentos/$id/editar")({
+  head: () => ({ meta: [
+    { title: "Editar atendimento — Fisio App" },
+    { name: "description", content: "Atualize os dados e valores de um atendimento no Fisio App." },
+    { property: "og:title", content: "Editar atendimento — Fisio App" },
+    { property: "og:description", content: "Atualize os dados e valores de um atendimento no Fisio App." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: EditAppointment,
   errorComponent: ({ error }) => <div className="text-destructive">{(error as Error).message}</div>,
   notFoundComponent: () => <div>Atendimento não encontrado.</div>,

@@ -36,6 +36,14 @@ import { toast } from "sonner";
 import { formatDateBR } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/_admin/usuarios")({
+  head: () => ({ meta: [
+    { title: "Usuários — Fisio App" },
+    { name: "description", content: "Gerencie aprovações e acesso da equipe ao Fisio App." },
+    { property: "og:title", content: "Usuários — Fisio App" },
+    { property: "og:description", content: "Gerencie aprovações e acesso da equipe ao Fisio App." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: UsersAdmin,
   errorComponent: ({ error }) => <div className="text-destructive">{(error as Error).message}</div>,
   notFoundComponent: () => <div>Nada encontrado.</div>,

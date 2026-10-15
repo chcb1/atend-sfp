@@ -12,6 +12,14 @@ import { toast } from "sonner";
 import { Wallet, AlertCircle } from "lucide-react";
 
 export const Route = createFileRoute("/auth")({
+  head: () => ({ meta: [
+    { title: "Entrar — Fisio App" },
+    { name: "description", content: "Acesse sua conta no Fisio App para gerenciar agenda e atendimentos." },
+    { property: "og:title", content: "Entrar — Fisio App" },
+    { property: "og:description", content: "Acesse sua conta no Fisio App para gerenciar agenda e atendimentos." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   ssr: false,
   component: AuthPage,
 });

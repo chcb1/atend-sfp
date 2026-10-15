@@ -29,6 +29,14 @@ import { brl, formatDateBR } from "@/lib/format";
 import { exportAppointmentsToXlsx } from "@/lib/xlsx-export";
 
 export const Route = createFileRoute("/_authenticated/atendimentos/")({
+  head: () => ({ meta: [
+    { title: "Atendimentos — Fisio App" },
+    { name: "description", content: "Consulte e gerencie os atendimentos e seus valores no Fisio App." },
+    { property: "og:title", content: "Atendimentos — Fisio App" },
+    { property: "og:description", content: "Consulte e gerencie os atendimentos e seus valores no Fisio App." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: AppointmentsList,
   errorComponent: ({ error }) => <div className="text-destructive">{(error as Error).message}</div>,
   notFoundComponent: () => <div>Nada encontrado.</div>,

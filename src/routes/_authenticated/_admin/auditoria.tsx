@@ -32,6 +32,14 @@ import { Button } from "@/components/ui/button";
 import { ScrollText, Eye } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/_admin/auditoria")({
+  head: () => ({ meta: [
+    { title: "Auditoria — Fisio App" },
+    { name: "description", content: "Consulte o histórico de alterações e sessões do Fisio App." },
+    { property: "og:title", content: "Auditoria — Fisio App" },
+    { property: "og:description", content: "Consulte o histórico de alterações e sessões do Fisio App." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: AuditPage,
   errorComponent: ({ error }) => <div className="text-destructive">{(error as Error).message}</div>,
   notFoundComponent: () => <div>Nada encontrado.</div>,
