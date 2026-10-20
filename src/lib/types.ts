@@ -60,6 +60,13 @@ export type DashboardStats = {
   projection: { gross: number; expenses: number; tax: number; net: number };
   /** Consolidado de caixa no período selecionado */
   cashflow: { inflow: number; outflow: number; standaloneExpenses: number; result: number };
+  /** Saídas do período agrupadas por natureza */
+  outflowBreakdown: {
+    custosAtendimento: number;
+    impostosTaxas: number;
+    demaisDespesas: { category: string; total: number }[];
+    demaisTotal: number;
+  };
 };
 
 export type ForecastWindow = {
