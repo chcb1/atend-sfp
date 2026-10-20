@@ -23,10 +23,6 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { brl, formatDateBR } from "@/lib/format";
 import {
-  TrendingUp,
-  Receipt,
-  Percent,
-  DollarSign,
   Plus,
   ArrowRight,
   ArrowDownRight,
@@ -133,39 +129,90 @@ function Dashboard() {
         </div>
       ) : (
         <>
-          <div className="grid gap-4 md:grid-cols-4">
-            <KpiCard
-              label="Receita Bruta"
-              value={brl(data.totalGross)}
-              icon={DollarSign}
-              tone="muted"
-              projected={showProjection ? data.projection.gross : undefined}
-            />
-            <KpiCard
-              label="Despesas"
-              value={brl(data.totalExpenses)}
-              icon={Receipt}
-              tone="muted"
-              percent={pctOf(data.totalExpenses, data.totalGross)}
-              projected={showProjection ? data.projection.expenses : undefined}
-            />
-            <KpiCard
-              label="Impostos / Taxas"
-              value={brl(data.totalTax)}
-              icon={Percent}
-              tone="muted"
-              percent={pctOf(data.totalTax, data.totalGross)}
-              projected={showProjection ? data.projection.tax : undefined}
-            />
-            <KpiCard
-              label="Lucro Líquido"
-              value={brl(data.totalNet)}
-              icon={TrendingUp}
-              tone="primary"
-              percent={pctOf(data.totalNet, data.totalGross)}
-              projected={showProjection ? data.projection.net : undefined}
-            />
-          </div>
+          <section className="space-y-3">
+            <div>
+              <h2 className="text-lg font-semibold">Consolidado (Entradas x Saídas)</h2>
+              <p className="text-xs text-muted-foreground">
+                Resultado de caixa do período selecionado — entradas são a receita bruta dos atendimentos
+                concluídos; saídas incluem custos, impostos e despesas pagas.
+              </p>
+            </div>
+            <div className="grid gap-4 md:grid-cols-3">
+              <KpiCard
+                label="Entradas"
+                value={brl(data.cashflow.inflow)}
+                icon={ArrowDownRight}
+                tone="muted"
+                projected={showProjection ? data.projection.gross : undefined}
+              />
+              <KpiCard
+                label="Saídas"
+                value={brl(data.cashflow.outflow)}
+                icon={ArrowUpRight}
+                tone="muted"
+                projected={showProjection ? data.projection.expenses + data.projection.tax : undefined}
+              />
+              <Card className={data.cashflow.result >= 0 ? "border-emerald-500/50" : "border-destructive/50"}>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      Resultado
+                    </span>
+                    <Wallet
+                      className={
+                        "h-4 w-4 " +
+                        (data.cashflow.result >= 0 ? "text-emerald-600" : "text-destructive")
+                      }
+                    />
+                  </div>
+                  <div
+                    className={
+                      "mt-2 text-2xl font-semibold tabular-nums " +
+                      (data.cashflow.result >= 0
+                        ? "text-emerald-600 dark:text-emerald-400"
+                        : "text-destructive")
+                    }
+                  >
+                    {brl(data.cashflow.result)}
+                  </div>
+                  <div className="mt-1 text-xs text-muted-foreground">
+                    Resultado de caixa, inclui despesas
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Saídas por natureza</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {data.cashflow.outflow === 0 ? (
+                  <p className="text-sm text-muted-foreground">Sem saídas no período.</p>
+                ) : (
+                  <ul className="divide-y">
+                    <BreakdownRow
+                      label="Custos de atendimento"
+                      value={data.outflowBreakdown.custosAtendimento}
+                      inflow={data.cashflow.inflow}
+                    />
+                    <BreakdownRow
+                      label="Impostos e taxas"
+                      value={data.outflowBreakdown.impostosTaxas}
+                      inflow={data.cashflow.inflow}
+                    />
+                    {data.outflowBreakdown.demaisDespesas.map((d) => (
+                      <BreakdownRow
+                        key={d.category}
+                        label={d.category}
+                        value={d.total}
+                        inflow={data.cashflow.inflow}
+                      />
+                    ))}
+                  </ul>
+                )}
+              </CardContent>
+            </Card>
+          </section>
 
           <div className="grid gap-4 md:grid-cols-4">
             <KpiCard label="Atendimentos" value={String(data.count)} tone="muted" />
