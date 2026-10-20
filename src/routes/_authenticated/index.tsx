@@ -337,58 +337,35 @@ function Dashboard() {
             </div>
           </section>
 
-          <section className="space-y-3">
-            <div>
-              <h2 className="text-lg font-semibold">Consolidado (Entradas x Saídas)</h2>
-              <p className="text-xs text-muted-foreground">
-                Resultado de caixa do período selecionado — inclui despesas, diferente do "Lucro Líquido"
-                acima, que considera apenas os valores embutidos em cada atendimento.
-              </p>
-            </div>
-            <div className="grid gap-4 md:grid-cols-3">
-              <KpiCard label="Entradas" value={brl(data.cashflow.inflow)} icon={ArrowDownRight} tone="muted" />
-              <KpiCard
-                label="Saídas"
-                value={brl(data.cashflow.outflow)}
-                icon={ArrowUpRight}
-                tone="muted"
-                percent={`inclui ${brl(data.cashflow.standaloneExpenses)} de despesas pagas`}
-              />
-              <Card className={data.cashflow.result >= 0 ? "border-emerald-500/50" : "border-destructive/50"}>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                      Resultado
-                    </span>
-                    <Wallet
-                      className={
-                        "h-4 w-4 " +
-                        (data.cashflow.result >= 0 ? "text-emerald-600" : "text-destructive")
-                      }
-                    />
-                  </div>
-                  <div
-                    className={
-                      "mt-2 text-2xl font-semibold tabular-nums " +
-                      (data.cashflow.result >= 0
-                        ? "text-emerald-600 dark:text-emerald-400"
-                        : "text-destructive")
-                    }
-                  >
-                    {brl(data.cashflow.result)}
-                  </div>
-                  <div className="mt-1 text-xs text-muted-foreground">
-                    Resultado de caixa, inclui despesas
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </section>
-
-
-
-
-          <div className="grid gap-4 lg:grid-cols-2">
+          <div className="grid gap-4 lg:grid-cols-3">
+            <Card>
+              <CardHeader>
+                <CardTitle>Por procedimento</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {data.byProcedure.length === 0 ? (
+                  <EmptyChart />
+                ) : (
+                  <ResponsiveContainer width="100%" height={280}>
+                    <PieChart>
+                      <Pie
+                        data={data.byProcedure}
+                        dataKey="net"
+                        nameKey="procedure"
+                        innerRadius={50}
+                        outerRadius={90}
+                      >
+                        {data.byProcedure.map((_, i) => (
+                          <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(v: number) => brl(v)} />
+                      <Legend wrapperStyle={{ fontSize: 12 }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                )}
+              </CardContent>
+            </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Top clientes</CardTitle>
@@ -447,10 +424,22 @@ function Dashboard() {
   );
 }
 
-function pctOf(part: number, total: number): string | undefined {
-  if (!total) return undefined;
-  const pct = (part / total) * 100;
-  return `${pct.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}% da receita bruta`;
+function pctOfInflow(part: number, inflow: number): string {
+  if (!inflow) return "—";
+  const pct = (part / inflow) * 100;
+  return `${pct.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}% das entradas`;
+}
+
+function BreakdownRow({ label, value, inflow }: { label: string; value: number; inflow: number }) {
+  return (
+    <li className="flex items-center justify-between gap-3 py-2.5 text-sm">
+      <span>{label}</span>
+      <span className="flex items-baseline gap-3 tabular-nums">
+        <span className="text-xs text-muted-foreground">{pctOfInflow(value, inflow)}</span>
+        <span className="font-semibold">{brl(value)}</span>
+      </span>
+    </li>
+  );
 }
 
 function KpiCard({
