@@ -242,11 +242,10 @@ function Dashboard() {
             </Card>
           </div>
 
-          <div className="grid gap-4 lg:grid-cols-3">
-            <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle>Lucro Líquido por mês</CardTitle>
-              </CardHeader>
+          <Card>
+            <CardHeader>
+              <CardTitle>Lucro Líquido por mês</CardTitle>
+            </CardHeader>
               <CardContent>
                 {data.byMonth.length === 0 ? (
                   <EmptyChart />
@@ -288,37 +287,8 @@ function Dashboard() {
                     </BarChart>
                   </ResponsiveContainer>
                 )}
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>Por procedimento</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {data.byProcedure.length === 0 ? (
-                  <EmptyChart />
-                ) : (
-                  <ResponsiveContainer width="100%" height={280}>
-                    <PieChart>
-                      <Pie
-                        data={data.byProcedure}
-                        dataKey="net"
-                        nameKey="procedure"
-                        innerRadius={50}
-                        outerRadius={90}
-                      >
-                        {data.byProcedure.map((_, i) => (
-                          <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip formatter={(v: number) => brl(v)} />
-                      <Legend wrapperStyle={{ fontSize: 12 }} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+            </CardContent>
+          </Card>
 
           <section
             id="provisao-futura"
