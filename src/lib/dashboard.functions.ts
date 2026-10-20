@@ -191,16 +191,31 @@ export const getDashboardStats = createServerFn({ method: "GET" })
     // Despesas (somente pagas) no período selecionado
     let expQ = (context.supabase as any)
       .from("expenses")
-      .select("amount, expense_date")
+      .select("amount, expense_date, category")
       .eq("status", "paga");
     if (data?.from) expQ = expQ.gte("expense_date", data.from);
     if (data?.to) expQ = expQ.lte("expense_date", data.to);
     const { data: expRows } = await expQ;
 
-    const standaloneExpenses = ((expRows ?? []) as { amount: number }[]).reduce(
-      (s, r) => s + Number(r.amount),
-      0,
-    );
+    const paidExpenses = (expRows ?? []) as { amount: number; category: string | null }[];
+    const standaloneExpenses = paidExpenses.reduce((s, r) => s + Number(r.amount), 0);
+
+    // Saídas por natureza: despesas "Impostos e taxas" somam ao imposto dos atendimentos
+    const TAX_CATEGORY = "Impostos e taxas";
+    let taxExpenses = 0;
+    const byCategory = new Map<string, number>();
+    for (const e of paidExpenses) {
+      const cat = e.category ?? "Outros";
+      if (cat === TAX_CATEGORY) {
+        taxExpenses += Number(e.amount);
+      } else {
+        byCategory.set(cat, (byCategory.get(cat) ?? 0) + Number(e.amount));
+      }
+    }
+    const demaisDespesas = Array.from(byCategory.entries())
+      .map(([category, total]) => ({ category, total }))
+      .sort((a, b) => b.total - a.total);
+    const demaisTotal = demaisDespesas.reduce((s, d) => s + d.total, 0);
 
     const inflow = totals.gross;
     const outflow = totals.exp + totals.tax + standaloneExpenses;
@@ -228,6 +243,12 @@ export const getDashboardStats = createServerFn({ method: "GET" })
       recent: list.slice(0, 5),
       projection,
       cashflow: { inflow, outflow, standaloneExpenses, result: inflow - outflow },
+      outflowBreakdown: {
+        custosAtendimento: totals.exp,
+        impostosTaxas: totals.tax + taxExpenses,
+        demaisDespesas,
+        demaisTotal,
+      },
     };
   });
 
