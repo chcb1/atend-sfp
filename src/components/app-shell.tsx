@@ -67,6 +67,12 @@ export function AppShell({ children }: { children: ReactNode }) {
       if (event === "SIGNED_IN") {
         // registro centralizado de login (cobre senha, cadastro e OAuth com redirect)
         void logSession({ data: { action: "LOGIN" } }).catch(() => {});
+        // marca o início da sessão para o controle de inatividade
+        try {
+          localStorage.setItem("session:last-activity", String(Date.now()));
+        } catch {
+          // storage indisponível
+        }
       }
     });
     return () => sub.subscription.unsubscribe();
@@ -98,9 +104,9 @@ export function AppShell({ children }: { children: ReactNode }) {
     timeoutMs: 10 * 60 * 1000,
     warningMs: 60 * 1000,
     onWarn: () => setShowWarning(true),
-    onTimeout: () => {
+    onTimeout: (reason) => {
       setShowWarning(false);
-      void doSignOut("Sessão encerrada por inatividade (10 minutos)");
+      void doSignOut(reason ?? "Sessão encerrada por inatividade (10 minutos)");
     },
   });
 
@@ -118,13 +124,13 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-muted/30">
       <header className="border-b bg-background">
         <div className="mx-auto flex h-16 max-w-7xl items-center gap-6 px-4">
-          <Link to="/" className="flex items-center gap-2 font-semibold">
+          <Link to="/" className="flex shrink-0 items-center gap-2 whitespace-nowrap font-semibold">
             <div className="grid h-8 w-8 place-items-center rounded-md bg-primary text-primary-foreground">
               <Activity className="h-4 w-4" />
             </div>
             <span>Fisio App</span>
           </Link>
-          <nav aria-label="Navegação principal" className="hidden items-center gap-1 md:flex">
+          <nav aria-label="Navegação principal" className="hidden min-w-0 items-center gap-1 md:flex">
             {items.map((item) => {
               const active =
                 item.to === "/"
@@ -135,6 +141,8 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <Link
                   key={item.to}
                   to={item.to}
+                  title={item.label}
+                  aria-label={item.label}
                   className={cn(
                     "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",
                     active
@@ -143,7 +151,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   )}
                 >
                   <Icon className="h-4 w-4" />
-                  <span className="hidden sm:inline">{item.label}</span>
+                  <span className="hidden lg:inline">{item.label}</span>
                 </Link>
               );
             })}
