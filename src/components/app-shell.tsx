@@ -123,14 +123,14 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-muted/30">
       <header className="border-b bg-background">
-        <div className="mx-auto flex h-16 max-w-7xl items-center gap-6 px-4">
+        <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 xl:gap-6">
           <Link to="/" className="flex shrink-0 items-center gap-2 whitespace-nowrap font-semibold">
             <div className="grid h-8 w-8 place-items-center rounded-md bg-primary text-primary-foreground">
               <Activity className="h-4 w-4" />
             </div>
             <span>Fisio App</span>
           </Link>
-          <nav aria-label="Navegação principal" className="hidden min-w-0 items-center gap-1 md:flex">
+          <nav aria-label="Navegação principal" className="hidden min-w-0 items-center gap-0.5 md:flex xl:gap-1">
             {items.map((item) => {
               const active =
                 item.to === "/"
@@ -144,7 +144,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   title={item.label}
                   aria-label={item.label}
                   className={cn(
-                    "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                    "flex items-center gap-1.5 rounded-md px-1.5 py-2 text-sm font-medium transition-colors xl:gap-2 xl:px-3",
                     active
                       ? "bg-accent text-accent-foreground"
                       : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
@@ -158,13 +158,13 @@ export function AppShell({ children }: { children: ReactNode }) {
           </nav>
           <div className="ml-auto hidden items-center gap-3 md:flex">
             {userEmail && (
-              <span className="hidden max-w-[220px] truncate text-sm text-muted-foreground sm:inline">
+              <span className="hidden max-w-[220px] truncate text-sm text-muted-foreground xl:inline">
                 {userEmail}
               </span>
             )}
-            <Button variant="ghost" size="sm" onClick={() => void doSignOut()}>
-              <LogOut className="mr-2 h-4 w-4" />
-              Sair
+            <Button variant="ghost" size="sm" onClick={() => void doSignOut()} title="Sair" aria-label="Sair">
+              <LogOut className="h-4 w-4 xl:mr-2" />
+              <span className="hidden xl:inline">Sair</span>
             </Button>
           </div>
         </div>
