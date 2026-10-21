@@ -158,7 +158,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </nav>
           <div className="ml-auto hidden items-center gap-3 md:flex">
             {userEmail && (
-              <span className="hidden max-w-[220px] truncate text-sm text-muted-foreground sm:inline">
+              <span className="hidden max-w-[220px] truncate text-sm text-muted-foreground xl:inline">
                 {userEmail}
               </span>
             )}
