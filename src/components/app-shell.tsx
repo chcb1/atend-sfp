@@ -123,7 +123,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-muted/30">
       <header className="border-b bg-background">
-        <div className="mx-auto flex h-16 max-w-7xl items-center gap-6 px-4">
+        <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 xl:gap-6">
           <Link to="/" className="flex shrink-0 items-center gap-2 whitespace-nowrap font-semibold">
             <div className="grid h-8 w-8 place-items-center rounded-md bg-primary text-primary-foreground">
               <Activity className="h-4 w-4" />
@@ -162,9 +162,9 @@ export function AppShell({ children }: { children: ReactNode }) {
                 {userEmail}
               </span>
             )}
-            <Button variant="ghost" size="sm" onClick={() => void doSignOut()}>
-              <LogOut className="mr-2 h-4 w-4" />
-              Sair
+            <Button variant="ghost" size="sm" onClick={() => void doSignOut()} title="Sair" aria-label="Sair">
+              <LogOut className="h-4 w-4 xl:mr-2" />
+              <span className="hidden xl:inline">Sair</span>
             </Button>
           </div>
         </div>
