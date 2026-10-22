@@ -9,7 +9,7 @@ describe("idle session", () => {
     expect(remainingSessionTime(1000000, 1000000 + 11 * 60 * 1000)).toBe(0);
   });
   test("fresh login stamps activity and logout removes it", () => {
-    const values = new Map<string, string>();
+    const values = new Map();
     const previous = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
     Object.defineProperty(globalThis, "localStorage", { configurable: true, value: {
       setItem: (key, value) => values.set(key, value),
