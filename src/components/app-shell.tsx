@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useRef, useState, type ReactNode } from "react";
 import { Link, useRouter, useLocation } from "@tanstack/react-router";
 import {
   CalendarDays,
@@ -13,6 +13,7 @@ import {
   ScrollText,
   Clock,
   Receipt,
+  UserRound,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,6 +32,9 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useSessionEmail } from "@/components/session-context";
+import { clearSessionActivity } from "@/lib/session-activity";
 
 const baseNav = [
   { to: "/agenda", label: "Agenda", icon: CalendarDays },
@@ -53,30 +57,11 @@ export function AppShell({ children }: { children: ReactNode }) {
   const qc = useQueryClient();
   const checkAdmin = useServerFn(isCurrentUserAdmin);
   const logSession = useServerFn(logSessionEvent);
-  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const userEmail = useSessionEmail();
   const [showWarning, setShowWarning] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const signingOut = useRef(false);
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setUserEmail(data.session?.user.email ?? null);
-    });
-    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
-      setUserEmail(session?.user.email ?? null);
-      if (event === "SIGNED_IN") {
-        // registro centralizado de login (cobre senha, cadastro e OAuth com redirect)
-        void logSession({ data: { action: "LOGIN" } }).catch(() => {});
-        // marca o início da sessão para o controle de inatividade
-        try {
-          localStorage.setItem("session:last-activity", String(Date.now()));
-        } catch {
-          // storage indisponível
-        }
-      }
-    });
-    return () => sub.subscription.unsubscribe();
-  }, [logSession]);
   const { data: isAdmin = false } = useQuery({
     queryKey: ["me", "isAdmin"],
     queryFn: () => checkAdmin(),
@@ -94,6 +79,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       }
       await qc.cancelQueries();
       qc.clear();
+      clearSessionActivity();
       await supabase.auth.signOut();
       router.navigate({ to: "/auth", replace: true });
     },
@@ -116,6 +102,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   }
 
   const items = [...(isAdmin ? [dashboardNav] : []), ...baseNav, ...(isAdmin ? adminNav : [])];
+  const accountItems = items.filter((item) => item.to === "/usuarios" || item.to === "/auditoria");
+  const operationalItems = items.filter((item) => !accountItems.some((account) => account.to === item.to));
   const mobileItems = [baseNav[0], baseNav[1], baseNav[3]];
   const moreItems = items.filter((item) => !mobileItems.some((mobile) => mobile.to === item.to));
   const isActive = (to: string) => to === "/" ? location.pathname === "/" : location.pathname.startsWith(to);
@@ -130,8 +118,8 @@ export function AppShell({ children }: { children: ReactNode }) {
             </div>
             <span>Fisio App</span>
           </Link>
-          <nav aria-label="Navegação principal" className="hidden min-w-0 items-center gap-0.5 md:flex xl:gap-1">
-            {items.map((item) => {
+          <nav aria-label="Navegação principal" className="hidden min-w-0 items-center gap-0.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:flex xl:gap-1">
+            {operationalItems.map((item) => {
               const active =
                 item.to === "/"
                   ? location.pathname === "/"
@@ -144,7 +132,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   title={item.label}
                   aria-label={item.label}
                   className={cn(
-                    "flex items-center gap-1.5 rounded-md px-1.5 py-2 text-sm font-medium transition-colors xl:gap-2 xl:px-3",
+                    "flex shrink-0 items-center gap-1.5 rounded-md px-1.5 py-2 text-sm font-medium transition-colors xl:gap-2 xl:px-3",
                     active
                       ? "bg-accent text-accent-foreground"
                       : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
@@ -156,16 +144,31 @@ export function AppShell({ children }: { children: ReactNode }) {
               );
             })}
           </nav>
-          <div className="ml-auto hidden items-center gap-3 md:flex">
-            {userEmail && (
-              <span className="hidden max-w-[220px] truncate text-sm text-muted-foreground xl:inline">
-                {userEmail}
-              </span>
-            )}
-            <Button variant="ghost" size="sm" onClick={() => void doSignOut()} title="Sair" aria-label="Sair">
-              <LogOut className="h-4 w-4 xl:mr-2" />
-              <span className="hidden xl:inline">Sair</span>
-            </Button>
+          <div className="ml-auto hidden shrink-0 items-center md:flex">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" title="Menu da conta" aria-label="Menu da conta" className={cn(accountItems.some((item) => isActive(item.to)) && "bg-accent text-accent-foreground")}>
+                  <UserRound className="h-4 w-4 shrink-0" />
+                  <span className="hidden max-w-32 truncate xl:inline">{userEmail?.split("@")[0]}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-72 max-w-[calc(100vw-2rem)]">
+                <DropdownMenuLabel className="break-all font-normal">{userEmail}</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {accountItems.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <DropdownMenuItem key={item.to} asChild className={cn(isActive(item.to) && "bg-accent text-accent-foreground")}>
+                      <Link to={item.to} aria-current={isActive(item.to) ? "page" : undefined}>
+                        <Icon />{item.label}
+                      </Link>
+                    </DropdownMenuItem>
+                  );
+                })}
+                {accountItems.length > 0 && <DropdownMenuSeparator />}
+                <DropdownMenuItem onSelect={() => void doSignOut()}><LogOut />Sair</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </header>
