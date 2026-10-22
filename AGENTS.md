@@ -13,3 +13,4 @@
 - Agenda undo uses existing authenticated scheduling mutations and refreshes schedule, appointments, dashboard, and forecast caches so business rules and totals remain consistent.
 - Root owns the single auth event subscription and shares session email through context; session-ID transitions distinguish fresh login from restoration or focus so idle expiration is not renewed accidentally.
 - Desktop operational navigation and account links partition the same permission-filtered list used by mobile navigation, preventing inconsistent access visibility.
+- Dashboard donut charts share PercentageDonut and presentation-only donut-data helpers; aggregation and percentage bases never change server financial calculations.

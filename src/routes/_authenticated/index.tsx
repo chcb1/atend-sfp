@@ -9,9 +9,6 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
   Legend,
   CartesianGrid,
 } from "recharts";
@@ -22,6 +19,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { brl, formatDateBR } from "@/lib/format";
+import { PercentageDonut } from "@/components/percentage-donut";
+import { DONUT_COLORS, groupOutflowSlices } from "@/lib/donut-data";
 import {
   Plus,
   ArrowRight,
@@ -59,8 +58,6 @@ function rangeToDates(r: Range): { from?: string; to?: string } {
   return {};
 }
 
-const PIE_COLORS = ["#2563eb", "#16a34a", "#f59e0b", "#ef4444", "#8b5cf6", "#0ea5e9", "#f97316"];
-
 function Dashboard() {
   const checkAdmin = useServerFn(isCurrentUserAdmin);
   const { data: isAdmin, isLoading: adminLoading } = useQuery({
@@ -84,6 +81,11 @@ function Dashboard() {
     queryFn: () => fetchForecast(),
     enabled: isAdmin === true,
   });
+  const outflowChart = useMemo(() => groupOutflowSlices(data ? [
+    { name: "Custos de atendimento", value: data.outflowBreakdown.custosAtendimento, color: DONUT_COLORS[0] },
+    { name: "Impostos e taxas", value: data.outflowBreakdown.impostosTaxas, color: DONUT_COLORS[1] },
+    ...data.outflowBreakdown.demaisDespesas.map((item, index) => ({ name: item.category, value: item.total, color: DONUT_COLORS[(index + 2) % DONUT_COLORS.length] })),
+  ] : []), [data]);
 
   if (adminLoading) {
     return <div className="text-sm text-muted-foreground">Carregando...</div>;
@@ -189,16 +191,23 @@ function Dashboard() {
                 {data.cashflow.outflow === 0 ? (
                   <p className="text-sm text-muted-foreground">Sem saídas no período.</p>
                 ) : (
+                  <div className="grid min-w-0 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+                  <div className="min-w-0">
+                  <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] gap-3 border-b pb-2 text-xs font-medium text-muted-foreground">
+                    <span>Natureza</span><span>% das entradas</span><span className="w-24 text-right">Valor</span>
+                  </div>
                   <ul className="divide-y">
                     <BreakdownRow
                       label="Custos de atendimento"
                       value={data.outflowBreakdown.custosAtendimento}
                       inflow={data.cashflow.inflow}
+                      color={outflowChart.colors.get("Custos de atendimento")}
                     />
                     <BreakdownRow
                       label="Impostos e taxas"
                       value={data.outflowBreakdown.impostosTaxas}
                       inflow={data.cashflow.inflow}
+                      color={outflowChart.colors.get("Impostos e taxas")}
                     />
                     {data.outflowBreakdown.demaisDespesas.map((d) => (
                       <BreakdownRow
@@ -206,9 +215,16 @@ function Dashboard() {
                         label={d.category}
                         value={d.total}
                         inflow={data.cashflow.inflow}
+                        color={outflowChart.colors.get(d.category)}
                       />
                     ))}
                   </ul>
+                  </div>
+                  <div className="min-w-0">
+                    <PercentageDonut items={outflowChart.slices} />
+                    <p className="mt-3 text-center text-xs text-muted-foreground">% do total de saídas</p>
+                  </div>
+                  </div>
                 )}
               </CardContent>
             </Card>
@@ -346,23 +362,7 @@ function Dashboard() {
                 {data.byProcedure.length === 0 ? (
                   <EmptyChart />
                 ) : (
-                  <ResponsiveContainer width="100%" height={280}>
-                    <PieChart>
-                      <Pie
-                        data={data.byProcedure}
-                        dataKey="net"
-                        nameKey="procedure"
-                        innerRadius={50}
-                        outerRadius={90}
-                      >
-                        {data.byProcedure.map((_, i) => (
-                          <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip formatter={(v: number) => brl(v)} />
-                      <Legend wrapperStyle={{ fontSize: 12 }} />
-                    </PieChart>
-                  </ResponsiveContainer>
+                  <PercentageDonut items={data.byProcedure.map((item, index) => ({ name: item.procedure, value: item.net, color: DONUT_COLORS[index % DONUT_COLORS.length] }))} />
                 )}
               </CardContent>
             </Card>
@@ -427,17 +427,15 @@ function Dashboard() {
 function pctOfInflow(part: number, inflow: number): string {
   if (!inflow) return "—";
   const pct = (part / inflow) * 100;
-  return `${pct.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}% das entradas`;
+  return `${pct.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`;
 }
 
-function BreakdownRow({ label, value, inflow }: { label: string; value: number; inflow: number }) {
+function BreakdownRow({ label, value, inflow, color }: { label: string; value: number; inflow: number; color?: string }) {
   return (
-    <li className="flex items-center justify-between gap-3 py-2.5 text-sm">
-      <span>{label}</span>
-      <span className="flex items-baseline gap-3 tabular-nums">
-        <span className="text-xs text-muted-foreground">{pctOfInflow(value, inflow)}</span>
-        <span className="font-semibold">{brl(value)}</span>
-      </span>
+    <li className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3 py-2.5 text-sm">
+      <span className="flex min-w-0 items-start gap-2"><svg width="10" height="10" className="mt-1 shrink-0" aria-hidden="true"><circle cx="5" cy="5" r="5" fill={color} /></svg><span className="min-w-0 break-words">{label}</span></span>
+      <span className="w-24 text-right text-xs tabular-nums text-muted-foreground">{pctOfInflow(value, inflow)}</span>
+      <span className="w-24 text-right font-semibold tabular-nums">{brl(value)}</span>
     </li>
   );
 }
