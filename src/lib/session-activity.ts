@@ -27,7 +27,8 @@ export function sessionIdentity(token: string): string | null {
     const payload = token.split(".")[1];
     if (!payload) return null;
     const claims = JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/")));
-    return typeof claims.session_id === "string" ? claims.session_id : null;
+    if (typeof claims.session_id === "string") return claims.session_id;
+    return typeof claims.sub === "string" ? claims.sub : null;
   } catch {
     return null;
   }
