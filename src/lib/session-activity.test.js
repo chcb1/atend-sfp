@@ -12,8 +12,8 @@ describe("idle session", () => {
     const values = new Map<string, string>();
     const previous = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
     Object.defineProperty(globalThis, "localStorage", { configurable: true, value: {
-      setItem: (key: string, value: string) => values.set(key, value),
-      removeItem: (key: string) => values.delete(key),
+      setItem: (key, value) => values.set(key, value),
+      removeItem: (key) => values.delete(key),
     } });
     try {
       values.set("session:last-activity", "1");
