@@ -11,3 +11,5 @@
 
 - Derive mobile overflow navigation from the same permission-filtered items as desktop navigation so both surfaces retain identical access visibility.
 - Agenda undo uses existing authenticated scheduling mutations and refreshes schedule, appointments, dashboard, and forecast caches so business rules and totals remain consistent.
+- Root owns the single auth event subscription and shares session email through context; session-ID transitions distinguish fresh login from restoration or focus so idle expiration is not renewed accidentally.
+- Desktop operational navigation and account links partition the same permission-filtered list used by mobile navigation, preventing inconsistent access visibility.
