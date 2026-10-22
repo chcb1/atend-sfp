@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { Wallet, AlertCircle } from "lucide-react";
+import { markSessionActivity } from "@/lib/session-activity";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({ meta: [
@@ -93,6 +94,7 @@ function AuthPage() {
       setSignInError(err);
       return;
     }
+    markSessionActivity();
     toast.success("Bem-vindo!");
     navigate({ to: "/", replace: true });
   }
@@ -122,7 +124,10 @@ function AuthPage() {
     }
     toast.success("Conta criada! Entrando...");
     const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
-    if (!signInErr) navigate({ to: "/", replace: true });
+    if (!signInErr) {
+      markSessionActivity();
+      navigate({ to: "/", replace: true });
+    }
   }
 
   async function handleGoogle() {
@@ -138,6 +143,7 @@ function AuthPage() {
       return;
     }
     if (result.redirected) return;
+    markSessionActivity();
     navigate({ to: "/", replace: true });
   }
 

@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { SESSION_ACTIVITY_KEY, remainingSessionTime } from "@/lib/session-activity";
 
 const CHANNEL_NAME = "session-activity";
-const STORAGE_KEY = "session:last-activity";
+const STORAGE_KEY = SESSION_ACTIVITY_KEY;
 const STALE_REASON = "Sessão expirada por inatividade";
 
 type Options = {
@@ -70,12 +71,12 @@ export function useIdleTimeout({
       schedule();
       return;
     }
-    const elapsed = Date.now() - last;
-    if (elapsed >= timeoutMs) {
+    const remaining = remainingSessionTime(last, Date.now(), timeoutMs);
+    if (remaining === 0) {
       onTimeoutRef.current(STALE_REASON);
       return;
     }
-    schedule(timeoutMs - elapsed);
+    schedule(remaining);
   }, [schedule, timeoutMs]);
 
   /** reseta o timer local e avisa as outras abas */

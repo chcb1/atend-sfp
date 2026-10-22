@@ -7,7 +7,12 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { supabase } from "@/integrations/supabase/client";
+import { logSessionEvent } from "@/lib/session-audit.functions";
+import { clearSessionActivity, createSessionTransitionTracker, markSessionActivity, sessionIdentity } from "@/lib/session-activity";
+import { SessionEmailContext } from "@/components/session-context";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -118,12 +123,42 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const router = useRouter();
+  const logSession = useServerFn(logSessionEvent);
+  const logSessionRef = useRef(logSession);
+  logSessionRef.current = logSession;
+  const [email, setEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    const isNewLogin = createSessionTransitionTracker();
+    const { data } = supabase.auth.onAuthStateChange((event, session) => {
+      setEmail(session?.user.email ?? null);
+      const freshLogin = isNewLogin(event, session ? sessionIdentity(session.access_token) : null);
+      if (freshLogin) {
+        markSessionActivity();
+        // Auth callbacks run under the auth lock; defer RPC work until it is released.
+        setTimeout(() => {
+          void logSessionRef.current({ data: { action: "LOGIN" } }).catch(() => {});
+        }, 0);
+      }
+      if (event === "SIGNED_OUT") clearSessionActivity();
+      if (event === "SIGNED_OUT" || event === "USER_UPDATED" || freshLogin) {
+        setTimeout(() => {
+          void router.invalidate();
+          if (event !== "SIGNED_OUT") void queryClient.invalidateQueries();
+        }, 0);
+      }
+    });
+    return () => data.subscription.unsubscribe();
+  }, [queryClient, router]);
 
   return (
     <QueryClientProvider client={queryClient}>
+      <SessionEmailContext.Provider value={email}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
       <Toaster position="top-center" />
+      </SessionEmailContext.Provider>
     </QueryClientProvider>
   );
 }

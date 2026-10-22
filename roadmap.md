@@ -1,3 +1,9 @@
+# Correções de login e menu
+- [x] Centralizar eventos de sessão, renovar atividade no login e limpar no logout.
+- [x] Separar menu da conta do menu operacional, preservando navegação móvel.
+- [x] Testar sessão real gerenciada, auditoria, saída manual e reabertura com 11 minutos simulados; cabeçalho admin nas quatro larguras.
+- [ ] Verificar entrada digitando senha e cabeçalho com conta comum: testes disponíveis usam sessão gerenciada da conta admin, sem senha ou sessão autorizada de conta comum.
+
 # Quatro ajustes (pedido único)
 - [x] Fixar @tanstack/react-router 1.170.16 e @tanstack/router-plugin 1.168.18 (sem ^) no package.json e bun.lock.
 - [x] Sessão: expirar ao reabrir/voltar à aba se última atividade > 10 min; gravar timestamp no login.
