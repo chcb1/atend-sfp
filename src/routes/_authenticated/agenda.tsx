@@ -534,11 +534,11 @@ function AgendaPage() {
                       <p className="truncate text-muted-foreground">{a.procedure}</p>
                       <p className="text-muted-foreground">{brl(Number(a.gross_value))}</p>
                       {a.status !== "cancelado" && (
-                        <div className="mt-1 flex flex-wrap gap-1">
+                        <div className="mt-1 flex flex-nowrap gap-0.5">
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-10 w-10 shrink-0"
+                            className="h-10 w-10 shrink-0 md:h-8 md:w-8"
                             disabled={busyIds.has(a.id)}
                             title="Editar"
                             onClick={() => openEdit(a)}
@@ -550,7 +550,7 @@ function AgendaPage() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-10 w-10 shrink-0"
+                              className="h-10 w-10 shrink-0 md:h-8 md:w-8"
                               disabled={busyIds.has(a.id)}
                               title="Concluir"
                               onClick={() => void changeStatus(a, "concluido")}
@@ -563,7 +563,7 @@ function AgendaPage() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-10 w-10 shrink-0"
+                              className="h-10 w-10 shrink-0 md:h-8 md:w-8"
                               disabled={busyIds.has(a.id)}
                               title="Cancelar"
                               onClick={() => void changeStatus(a, "cancelado")}

@@ -1,3 +1,8 @@
+# Ajustes visuais dos gráficos e agenda
+- [ ] Rosca de saídas com cores compartilhadas, até seis fatias e bases percentuais explícitas.
+- [ ] Por procedimento com porcentagens na legenda, tooltip e rótulos a partir de 5%.
+- [ ] Ações da agenda sem quebra; verificar Dia, Semana e Mês em desktop e celular.
+
 # Correções de login e menu
 - [x] Centralizar eventos de sessão, renovar atividade no login e limpar no logout.
 - [x] Separar menu da conta do menu operacional, preservando navegação móvel.
