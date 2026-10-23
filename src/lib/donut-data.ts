@@ -12,9 +12,10 @@ export function groupOutflowSlices(items: DonutItem[]) {
   const kept = ranked.slice(0, 5);
   const grouped = ranked.slice(5);
   const otherColor = DONUT_COLORS[5];
-  const colors = new Map(items.map((item) => [item.name, grouped.some((entry) => entry.name === item.name) ? otherColor : item.color]));
+  const coloredKept = kept.map((item, index) => ({ ...item, color: DONUT_COLORS[index] }));
+  const colors = new Map(items.map((item) => [item.name, coloredKept.find((entry) => entry.name === item.name)?.color ?? otherColor]));
   return {
-    slices: [...kept, { name: "Outras", value: grouped.reduce((sum, item) => sum + item.value, 0), color: otherColor }],
+    slices: [...coloredKept, { name: "Outras", value: grouped.reduce((sum, item) => sum + item.value, 0), color: otherColor }],
     colors,
   };
 }

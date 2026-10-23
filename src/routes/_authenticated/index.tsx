@@ -101,7 +101,7 @@ function Dashboard() {
           <h1 className="text-2xl font-semibold">Dashboard</h1>
           <p className="text-sm text-muted-foreground">Visão geral financeira dos atendimentos</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
           <Tabs value={range} onValueChange={(v) => setRange(v as Range)}>
             <TabsList>
               <TabsTrigger value="month">Mês atual</TabsTrigger>
@@ -193,8 +193,8 @@ function Dashboard() {
                 ) : (
                   <div className="grid min-w-0 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
                   <div className="min-w-0">
-                  <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] gap-3 border-b pb-2 text-xs font-medium text-muted-foreground">
-                    <span>Natureza</span><span>% das entradas</span><span className="w-24 text-right">Valor</span>
+                  <div className="grid grid-cols-[minmax(0,1fr)_4rem_5.5rem] gap-2 border-b pb-2 text-xs font-medium text-muted-foreground sm:grid-cols-[minmax(0,1fr)_6rem_6rem] sm:gap-3">
+                    <span>Natureza</span><span className="text-right">% das entradas</span><span className="text-right">Valor</span>
                   </div>
                   <ul className="divide-y">
                     <BreakdownRow
@@ -432,10 +432,10 @@ function pctOfInflow(part: number, inflow: number): string {
 
 function BreakdownRow({ label, value, inflow, color }: { label: string; value: number; inflow: number; color?: string }) {
   return (
-    <li className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3 py-2.5 text-sm">
+    <li className="grid grid-cols-[minmax(0,1fr)_4rem_5.5rem] items-center gap-2 py-2.5 text-sm sm:grid-cols-[minmax(0,1fr)_6rem_6rem] sm:gap-3">
       <span className="flex min-w-0 items-start gap-2"><svg width="10" height="10" className="mt-1 shrink-0" aria-hidden="true"><circle cx="5" cy="5" r="5" fill={color} /></svg><span className="min-w-0 break-words">{label}</span></span>
-      <span className="w-24 text-right text-xs tabular-nums text-muted-foreground">{pctOfInflow(value, inflow)}</span>
-      <span className="w-24 text-right font-semibold tabular-nums">{brl(value)}</span>
+      <span className="text-right text-xs tabular-nums text-muted-foreground">{pctOfInflow(value, inflow)}</span>
+      <span className="text-right font-semibold tabular-nums">{brl(value)}</span>
     </li>
   );
 }
