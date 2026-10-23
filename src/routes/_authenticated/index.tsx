@@ -86,6 +86,7 @@ function Dashboard() {
     { name: "Impostos e taxas", value: data.outflowBreakdown.impostosTaxas, color: DONUT_COLORS[1] },
     ...data.outflowBreakdown.demaisDespesas.map((item, index) => ({ name: item.category, value: item.total, color: DONUT_COLORS[(index + 2) % DONUT_COLORS.length] })),
   ] : []), [data]);
+  const procedureChart = useMemo(() => groupOutflowSlices(data?.byProcedure.map((item, index) => ({ name: item.procedure, value: item.net, color: DONUT_COLORS[index % DONUT_COLORS.length] })) ?? []), [data]);
 
   if (adminLoading) {
     return <div className="text-sm text-muted-foreground">Carregando...</div>;
@@ -362,7 +363,7 @@ function Dashboard() {
                 {data.byProcedure.length === 0 ? (
                   <EmptyChart />
                 ) : (
-                  <PercentageDonut items={data.byProcedure.map((item, index) => ({ name: item.procedure, value: item.net, color: DONUT_COLORS[index % DONUT_COLORS.length] }))} />
+                  <PercentageDonut items={procedureChart.slices} />
                 )}
               </CardContent>
             </Card>
