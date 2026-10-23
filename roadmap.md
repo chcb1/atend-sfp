@@ -1,5 +1,5 @@
 # Ajustes visuais dos gráficos e agenda
-- [ ] Diferenciar seis cores categóricas, reservar cinza para Outras e agrupar procedimentos; verificar cores sem alterar layout ou cálculos.
+- [x] Diferenciar seis cores categóricas, reservar cinza para Outras e agrupar procedimentos; quatro testes passaram e ambas as roscas foram verificadas com sessão autorizada, sem cores repetidas.
 - [x] Rosca de saídas com cores compartilhadas, até seis fatias e bases percentuais explícitas.
 - [x] Por procedimento com porcentagens na legenda, tooltip e rótulos a partir de 5%.
 - [x] Ações da agenda sem quebra; verificados Dia, Semana e Mês em 1280px e 390px com sessão autorizada, sem alterar registros.
