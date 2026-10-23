@@ -62,6 +62,13 @@
 }
 
 :root {
+  --donut-blue: oklch(0.546 0.245 262.881);
+  --donut-green: oklch(0.627 0.194 149.214);
+  --donut-amber: oklch(0.666 0.179 58.318);
+  --donut-red: oklch(0.577 0.245 27.325);
+  --donut-purple: oklch(0.541 0.281 293.009);
+  --donut-cyan: oklch(0.609 0.126 221.723);
+  --donut-other: oklch(0.707 0.022 261.325);
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.129 0.042 264.695);
