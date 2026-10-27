@@ -1,4 +1,7 @@
 # Ajustes visuais dos gráficos e agenda
+- [x] Unificar a base percentual das saídas, usar tabela como legenda e cinza para categorias agrupadas.
+- [x] Centralizar rosca de procedimentos, organizar legenda e mostrar total líquido no centro.
+- [x] Conferir ambas as roscas em 1280px e 390px com sessão autorizada; saídas com e sem agrupamento real, procedimentos agrupados com sete exemplos locais sem gravar registros. Quatro testes passaram.
 - [x] Diferenciar seis cores categóricas, reservar cinza para Outras e agrupar procedimentos; quatro testes passaram e ambas as roscas foram verificadas com sessão autorizada, sem cores repetidas.
 - [x] Rosca de saídas com cores compartilhadas, até seis fatias e bases percentuais explícitas.
 - [x] Por procedimento com porcentagens na legenda, tooltip e rótulos a partir de 5%.

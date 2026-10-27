@@ -20,7 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { brl, formatDateBR } from "@/lib/format";
 import { PercentageDonut } from "@/components/percentage-donut";
-import { DONUT_COLORS, groupOutflowSlices } from "@/lib/donut-data";
+import { DONUT_COLORS, formatDonutPercentage, groupOutflowSlices } from "@/lib/donut-data";
 import {
   Plus,
   ArrowRight,
@@ -192,22 +192,22 @@ function Dashboard() {
                 {data.cashflow.outflow === 0 ? (
                   <p className="text-sm text-muted-foreground">Sem saídas no período.</p>
                 ) : (
-                  <div className="grid min-w-0 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-                  <div className="min-w-0">
+                  <div className="grid min-w-0 items-center gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+                  <div className="order-2 min-w-0 lg:order-1">
                   <div className="grid grid-cols-[minmax(0,1fr)_4rem_5.5rem] gap-2 border-b pb-2 text-xs font-medium text-muted-foreground sm:grid-cols-[minmax(0,1fr)_6rem_6rem] sm:gap-3">
-                    <span>Natureza</span><span className="text-right">% das entradas</span><span className="text-right">Valor</span>
+                    <span>Natureza</span><span className="text-right">% das saídas</span><span className="text-right">Valor</span>
                   </div>
                   <ul className="divide-y">
                     <BreakdownRow
                       label="Custos de atendimento"
                       value={data.outflowBreakdown.custosAtendimento}
-                      inflow={data.cashflow.inflow}
+                      outflow={data.cashflow.outflow}
                       color={outflowChart.colors.get("Custos de atendimento")}
                     />
                     <BreakdownRow
                       label="Impostos e taxas"
                       value={data.outflowBreakdown.impostosTaxas}
-                      inflow={data.cashflow.inflow}
+                      outflow={data.cashflow.outflow}
                       color={outflowChart.colors.get("Impostos e taxas")}
                     />
                     {data.outflowBreakdown.demaisDespesas.map((d) => (
@@ -215,15 +215,14 @@ function Dashboard() {
                         key={d.category}
                         label={d.category}
                         value={d.total}
-                        inflow={data.cashflow.inflow}
+                        outflow={data.cashflow.outflow}
                         color={outflowChart.colors.get(d.category)}
                       />
                     ))}
                   </ul>
                   </div>
-                  <div className="min-w-0">
-                    <PercentageDonut items={outflowChart.slices} />
-                    <p className="mt-3 text-center text-xs text-muted-foreground">% do total de saídas</p>
+                  <div className="order-1 min-w-0 lg:order-2">
+                    <PercentageDonut items={outflowChart.slices} showLegend={false} />
                   </div>
                   </div>
                 )}
@@ -363,7 +362,7 @@ function Dashboard() {
                 {data.byProcedure.length === 0 ? (
                   <EmptyChart />
                 ) : (
-                  <PercentageDonut items={procedureChart.slices} />
+                  <PercentageDonut items={procedureChart.slices} centerTotal={data.totalNet} />
                 )}
               </CardContent>
             </Card>
@@ -425,17 +424,11 @@ function Dashboard() {
   );
 }
 
-function pctOfInflow(part: number, inflow: number): string {
-  if (!inflow) return "—";
-  const pct = (part / inflow) * 100;
-  return `${pct.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`;
-}
-
-function BreakdownRow({ label, value, inflow, color }: { label: string; value: number; inflow: number; color?: string }) {
+function BreakdownRow({ label, value, outflow, color }: { label: string; value: number; outflow: number; color?: string }) {
   return (
     <li className="grid grid-cols-[minmax(0,1fr)_4rem_5.5rem] items-center gap-2 py-2.5 text-sm sm:grid-cols-[minmax(0,1fr)_6rem_6rem] sm:gap-3">
       <span className="flex min-w-0 items-start gap-2"><svg width="10" height="10" className="mt-1 shrink-0" aria-hidden="true"><circle cx="5" cy="5" r="5" fill={color} /></svg><span className="min-w-0 break-words">{label}</span></span>
-      <span className="text-right text-xs tabular-nums text-muted-foreground">{pctOfInflow(value, inflow)}</span>
+      <span className="text-right text-xs tabular-nums text-muted-foreground">{formatDonutPercentage(value, outflow)}</span>
       <span className="text-right font-semibold tabular-nums">{brl(value)}</span>
     </li>
   );
