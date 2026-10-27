@@ -51,6 +51,31 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+  --color-primary-hover: var(--primary-hover);
+  --color-nav-foreground: var(--nav-foreground);
+  --color-field: var(--field);
+  --color-placeholder: var(--placeholder);
+  --color-invalid: var(--invalid);
+  --color-invalid-bg: var(--invalid-bg);
+  --color-surface-flat: var(--surface-flat);
+  --color-surface-flat-border: var(--surface-flat-border);
+  --color-grid-line: var(--grid-line);
+  --color-today: var(--today);
+  --color-row-hover: var(--row-hover);
+  --color-overlay: var(--overlay);
+  --color-status-agendado-bg: var(--status-agendado-bg);
+  --color-status-agendado-fg: var(--status-agendado-fg);
+  --color-status-agendado-block: var(--status-agendado-block);
+  --color-status-agendado-edge: var(--status-agendado-edge);
+  --color-status-concluido-bg: var(--status-concluido-bg);
+  --color-status-concluido-fg: var(--status-concluido-fg);
+  --color-status-concluido-block: var(--status-concluido-block);
+  --color-status-concluido-edge: var(--status-concluido-edge);
+  --color-status-cancelado-bg: var(--status-cancelado-bg);
+  --color-status-cancelado-block-bg: var(--status-cancelado-block-bg);
+  --color-status-cancelado-fg: var(--status-cancelado-fg);
+  --color-status-cancelado-edge: var(--status-cancelado-edge);
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -69,26 +94,47 @@
   --donut-purple: oklch(0.541 0.281 293.009);
   --donut-cyan: oklch(0.609 0.126 221.723);
   --donut-other: oklch(0.707 0.022 261.325);
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.129 0.042 264.695);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.208 0.042 265.755);
-  --primary-foreground: oklch(0.984 0.003 247.858);
-  --secondary: oklch(0.968 0.007 247.896);
-  --secondary-foreground: oklch(0.208 0.042 265.755);
-  --muted: oklch(0.968 0.007 247.896);
-  --muted-foreground: oklch(0.554 0.046 257.417);
-  --accent: oklch(0.968 0.007 247.896);
-  --accent-foreground: oklch(0.208 0.042 265.755);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(0.929 0.013 255.508);
-  --input: oklch(0.929 0.013 255.508);
-  --ring: oklch(0.704 0.04 256.788);
+  --radius: 0.875rem;
+  --background: #E9EEF5;
+  --foreground: #1E2A3B;
+  --card: #F4F7FB;
+  --card-foreground: #1E2A3B;
+  --popover: #F4F7FB;
+  --popover-foreground: #1E2A3B;
+  --primary: #2F5BEA;
+  --primary-foreground: #FFFFFF;
+  --primary-hover: #1F44C2;
+  --secondary: #F4F7FB;
+  --secondary-foreground: #1E2A3B;
+  --muted: #E1E7EF;
+  --muted-foreground: #556074;
+  --accent: #DCE5FF;
+  --accent-foreground: #1F44C2;
+  --destructive: #B42318;
+  --destructive-foreground: #FFFFFF;
+  --border: #DFE5EE;
+  --input: #C5CFDD;
+  --ring: #2F5BEA;
+  --nav-foreground: #3D4759;
+  --field: #FFFFFF;
+  --placeholder: #5B6577;
+  --invalid: #C2331F;
+  --invalid-bg: #FFF8F7;
+  --surface-flat: #FBFCFE;
+  --surface-flat-border: #E1E7EF;
+  --grid-line: #E6EBF2;
+  --today: #F3F6FD;
+  --row-hover: #E8EEFA;
+  --overlay: rgba(30, 42, 59, 0.35);
+  --status-agendado-bg: #DCE5FF; --status-agendado-fg: #1F44C2; --status-agendado-block: #1A2E6E; --status-agendado-edge: #2F5BEA;
+  --status-concluido-bg: #D6F2E1; --status-concluido-fg: #0E6B3A; --status-concluido-block: #0E4B2B; --status-concluido-edge: #16A34A;
+  --status-cancelado-bg: #E6E9EF; --status-cancelado-block-bg: #ECEFF4; --status-cancelado-fg: #4A5568; --status-cancelado-edge: #8A94A6;
+  --shadow-soft: 10px 10px 24px rgba(163,177,198,.5), -10px -10px 24px rgba(255,255,255,.95);
+  --shadow-soft-sm: 5px 5px 12px rgba(163,177,198,.45), -5px -5px 12px rgba(255,255,255,.95);
+  --shadow-inset: inset 4px 4px 10px rgba(163,177,198,.45), inset -4px -4px 10px rgba(255,255,255,.95);
+  --shadow-primary: 6px 6px 14px rgba(47,91,234,.3), -4px -4px 10px rgba(255,255,255,.9);
+  --shadow-float: 12px 12px 28px rgba(140,155,180,.55), -8px -8px 20px rgba(255,255,255,.95);
+  --shadow-bar: 0 -6px 16px rgba(163,177,198,.35);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -139,6 +185,32 @@
   --sidebar-ring: oklch(0.551 0.027 264.364);
 }
 
+@media (max-width: 767px) {
+  :root {
+    --shadow-soft: 5px 5px 12px rgba(163,177,198,.5), -5px -5px 12px rgba(255,255,255,.95);
+    --shadow-soft-sm: 3px 3px 6px rgba(163,177,198,.45), -3px -3px 6px rgba(255,255,255,.95);
+    --shadow-inset: inset 2px 2px 5px rgba(163,177,198,.45), inset -2px -2px 5px rgba(255,255,255,.95);
+    --shadow-primary: 3px 3px 7px rgba(47,91,234,.3), -2px -2px 5px rgba(255,255,255,.9);
+    --shadow-float: 6px 6px 14px rgba(140,155,180,.55), -4px -4px 10px rgba(255,255,255,.95);
+  }
+}
+
+@utility shadow-soft { box-shadow: var(--shadow-soft); }
+@utility shadow-soft-sm { box-shadow: var(--shadow-soft-sm); }
+@utility shadow-inset { box-shadow: var(--shadow-inset); }
+@utility shadow-primary { box-shadow: var(--shadow-primary); }
+@utility shadow-float { box-shadow: var(--shadow-float); }
+@utility shadow-bar { box-shadow: var(--shadow-bar); }
+@utility field-base {
+  background-color: var(--field);
+  border: 1.5px solid var(--input);
+  border-radius: 12px;
+  box-shadow: none;
+  &::placeholder { color: var(--placeholder); }
+  &:focus-visible, &:focus { outline: none; border-color: var(--ring); box-shadow: 0 0 0 4px rgba(47,91,234,.18); }
+  &[aria-invalid="true"] { border-color: var(--invalid); background-color: var(--invalid-bg); }
+}
+
 @layer base {
   * {
     border-color: var(--color-border);
@@ -147,6 +219,17 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    font-family: var(--font-sans);
+  }
+  a:focus-visible, button:focus-visible, [role="button"]:focus-visible, [role="tab"]:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  /* Card dentro de Card fica plano */
+  [data-slot="card"] [data-slot="card"] {
+    box-shadow: none;
+    border: 1px solid var(--surface-flat-border);
+    background-color: var(--surface-flat);
   }
 }
 
