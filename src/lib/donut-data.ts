@@ -20,6 +20,7 @@ export function groupOutflowSlices(items: DonutItem[]) {
   const otherColor = DONUT_OTHER_COLOR;
   const coloredKept = kept.map((item, index) => ({ ...item, color: DONUT_COLORS[index] }));
   coloredKept.forEach((item) => colors.set(item.name, item.color));
+  grouped.forEach((item) => colors.set(item.name, otherColor));
   return {
     slices: [...coloredKept, { name: "Outras", value: grouped.reduce((sum, item) => sum + item.value, 0), color: otherColor }],
     colors,

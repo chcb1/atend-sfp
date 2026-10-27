@@ -10,7 +10,8 @@ describe("outflow chart presentation", () => {
     expect(slices.at(-1)?.value).toBe(30);
     expect(slices.reduce((sum, item) => sum + item.value, 0)).toBe(280);
     expect(slices.at(-1)?.color).toBe(DONUT_OTHER_COLOR);
-    expect([...colors.values()]).not.toContain(DONUT_OTHER_COLOR);
+    expect(colors.get("Category 0")).toBe(DONUT_OTHER_COLOR);
+    expect(colors.get("Category 2")).toBe(DONUT_OTHER_COLOR);
     expect(new Set(slices.map((item) => item.color)).size).toBe(6);
     for (const item of slices.slice(0, 5)) expect(colors.get(item.name)).toBe(item.color);
   });
@@ -28,6 +29,7 @@ describe("outflow chart presentation", () => {
   test("percentages use the chart total and include the five percent threshold", () => {
     expect(donutPercentage(5, 100)).toBe(5);
     expect(donutPercentage(32, 100)).toBe(32);
+    expect(donutPercentage(70, 280)).toBe(25);
     expect(donutPercentage(4, 100)).toBeLessThan(5);
     expect(donutPercentage(0, 0)).toBe(0);
   });
