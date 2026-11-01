@@ -7,6 +7,7 @@ import type { AppointmentStatus } from "@/lib/types";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { thisMonthRange, lastMonthRange } from "@/lib/date-ranges";
 import { statusLabels, statusBadgeClass } from "@/lib/appointment-status";
+import { StatusIcon } from "@/components/status-icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -96,7 +97,7 @@ function AppointmentsList() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">Atendimentos</h1>
+          <h1 className="text-[30px] font-extrabold tracking-tight">Atendimentos</h1>
           <p className="text-sm text-muted-foreground">Registre, edite e exporte seus atendimentos</p>
         </div>
         <div className="flex gap-2">
@@ -194,11 +195,11 @@ function AppointmentsList() {
                       <Badge
                         variant="secondary"
                         className={cn(
-                          "whitespace-nowrap",
+                          "gap-1 whitespace-nowrap",
                           statusBadgeClass[r.status],
-                          r.status === "cancelado" && "line-through",
                         )}
                       >
+                        <StatusIcon status={r.status} />
                         {statusLabels[r.status]}
                       </Badge>
                     </TableCell>

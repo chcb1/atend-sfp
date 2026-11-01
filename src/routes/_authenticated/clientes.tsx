@@ -61,7 +61,7 @@ function ClientsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Clientes</h1>
+          <h1 className="text-[30px] font-extrabold tracking-tight">Clientes</h1>
           <p className="text-sm text-muted-foreground">Cadastre e gerencie seus clientes</p>
         </div>
         <Button

@@ -67,7 +67,7 @@ function ProceduresPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Procedimentos</h1>
+          <h1 className="text-[30px] font-extrabold tracking-tight">Procedimentos</h1>
           <p className="text-sm text-muted-foreground">
             Cadastre procedimentos com valor padrão para agilizar o registro de atendimentos
           </p>

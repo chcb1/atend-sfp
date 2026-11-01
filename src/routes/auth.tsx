@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { Wallet, AlertCircle } from "lucide-react";
+import { Activity, AlertCircle } from "lucide-react";
 import { markSessionActivity } from "@/lib/session-activity";
 
 export const Route = createFileRoute("/auth")({
@@ -161,13 +161,13 @@ function AuthPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-md">
         <div className="mb-8 flex flex-col items-center gap-2">
-          <div className="grid h-12 w-12 place-items-center rounded-lg bg-primary text-primary-foreground">
-            <Wallet className="h-6 w-6" />
+          <div className="grid h-12 w-12 place-items-center rounded-[14px] bg-primary text-primary-foreground shadow-primary">
+            <Activity className="h-6 w-6" />
           </div>
-          <h1 className="text-2xl font-semibold">Fisio App</h1>
+          <h1 className="text-[30px] font-extrabold tracking-tight">Fisio App</h1>
           <p className="text-sm text-muted-foreground">Controle de atendimentos</p>
         </div>
         <Card>

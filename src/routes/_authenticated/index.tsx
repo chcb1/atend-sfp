@@ -99,7 +99,7 @@ function Dashboard() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">Dashboard</h1>
+          <h1 className="text-[30px] font-extrabold tracking-tight">Dashboard</h1>
           <p className="text-sm text-muted-foreground">Visão geral financeira dos atendimentos</p>
         </div>
         <div className="flex min-w-0 flex-wrap items-center gap-2">
@@ -155,31 +155,19 @@ function Dashboard() {
                 tone="muted"
                 projected={showProjection ? data.projection.expenses + data.projection.tax : undefined}
               />
-              <Card className={data.cashflow.result >= 0 ? "border-emerald-500/50" : "border-destructive/50"}>
+              <Card className="bg-primary text-primary-foreground shadow-primary">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    <span className="text-xs font-medium uppercase tracking-wide text-accent">
                       Resultado
                     </span>
-                    <Wallet
-                      className={
-                        "h-4 w-4 " +
-                        (data.cashflow.result >= 0 ? "text-emerald-600" : "text-destructive")
-                      }
-                    />
+                    <Wallet className="h-4 w-4 text-accent" />
                   </div>
-                  <div
-                    className={
-                      "mt-2 text-2xl font-semibold tabular-nums " +
-                      (data.cashflow.result >= 0
-                        ? "text-emerald-600 dark:text-emerald-400"
-                        : "text-destructive")
-                    }
-                  >
-                    {brl(data.cashflow.result)}
+                  <div className="mt-2 text-2xl font-semibold tabular-nums">
+                    {data.cashflow.result < 0 ? "− " : ""}{brl(Math.abs(data.cashflow.result))}
                   </div>
-                  <div className="mt-1 text-xs text-muted-foreground">
-                    Resultado de caixa, inclui despesas
+                  <div className="mt-1 text-xs text-accent">
+                    {data.cashflow.result >= 0 ? "Positivo · " : "Negativo · "}Resultado de caixa, inclui despesas
                   </div>
                 </CardContent>
               </Card>

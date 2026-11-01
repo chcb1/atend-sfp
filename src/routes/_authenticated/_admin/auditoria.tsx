@@ -95,7 +95,7 @@ function AuditPage() {
           <ScrollText className="h-5 w-5" />
         </div>
         <div>
-          <h1 className="text-2xl font-semibold">Auditoria</h1>
+          <h1 className="text-[30px] font-extrabold tracking-tight">Auditoria</h1>
           <p className="text-sm text-muted-foreground">
             Histórico de criações, alterações e exclusões.
           </p>
