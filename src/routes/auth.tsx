@@ -164,8 +164,8 @@ function AuthPage() {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-md">
         <div className="mb-8 flex flex-col items-center gap-2">
-          <div className="grid h-12 w-12 place-items-center rounded-lg bg-primary text-primary-foreground">
-            <Wallet className="h-6 w-6" />
+          <div className="grid h-12 w-12 place-items-center rounded-[14px] bg-primary text-primary-foreground shadow-primary">
+            <Activity className="h-6 w-6" />
           </div>
           <h1 className="text-[30px] font-extrabold tracking-tight">Fisio App</h1>
           <p className="text-sm text-muted-foreground">Controle de atendimentos</p>
