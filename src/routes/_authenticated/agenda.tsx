@@ -49,6 +49,7 @@ import { cn } from "@/lib/utils";
 import { brl } from "@/lib/format";
 import type { Appointment, AppointmentStatus } from "@/lib/types";
 import { statusStyles, statusLabels } from "@/lib/appointment-status";
+import { StatusIcon } from "@/components/status-icon";
 
 export const Route = createFileRoute("/_authenticated/agenda")({
   component: AgendaPage,
@@ -358,7 +359,7 @@ function AgendaPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-semibold">
+          <h1 className="flex items-center gap-2 text-[30px] font-extrabold tracking-tight">
             <CalendarDays className="h-6 w-6 text-primary" />
             Agenda
           </h1>
@@ -425,13 +426,13 @@ function AgendaPage() {
                   setView("dia");
                 }}
                 className={cn(
-                  "min-h-24 rounded-md border p-1 text-left align-top transition-colors hover:bg-accent/50",
+                  "min-h-24 rounded-md border border-surface-flat-border bg-surface-flat p-1 text-left align-top transition-colors hover:bg-row-hover",
                   !inMonth && "opacity-45",
-                  isToday && "ring-1 ring-primary",
+                  isToday && "bg-today",
                 )}
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium">{day.getDate()}</span>
+                  <span className={cn("grid h-5 min-w-5 place-items-center rounded-full text-xs font-medium tabular-nums", isToday && "bg-primary text-primary-foreground")}>{day.getDate()}</span>
                   {items.length === 0 && (
                     <span
                       role="button"
@@ -459,7 +460,7 @@ function AgendaPage() {
                     <div
                       key={a.id}
                       className={cn(
-                        "truncate rounded px-1 py-0.5 text-[10px]",
+                        "truncate px-1 py-0.5 text-[10px] tabular-nums",
                         statusStyles[a.status],
                         a.status === "cancelado" && "line-through",
                       )}
@@ -488,10 +489,10 @@ function AgendaPage() {
           const items = byDay(day);
           const isToday = toISODate(day) === toISODate(new Date());
           return (
-            <Card key={toISODate(day)} className={cn(isToday && "ring-1 ring-primary")}>
+            <Card key={toISODate(day)} className={cn("border border-surface-flat-border bg-surface-flat shadow-none", isToday && "bg-today")}>
               <CardContent className="space-y-2 p-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium capitalize">
+                  <span className={cn("text-sm font-medium capitalize", isToday && "rounded-full bg-primary px-2 py-0.5 text-primary-foreground")}>
                     {view === "dia" ? longDayLabel.format(day) : dayLabel.format(day)}
                   </span>
                   <Button
@@ -513,13 +514,14 @@ function AgendaPage() {
                   items.map((a) => (
                     <div
                       key={a.id}
-                      className={cn("rounded-md p-2 text-xs", statusStyles[a.status])}
+                      className={cn("p-2 text-xs", statusStyles[a.status])}
                     >
                       <div className="flex items-center justify-between gap-2">
-                        <span className="font-medium">
+                        <span className="font-medium tabular-nums">
                           {timeLabel.format(new Date(a.scheduled_at!))} · {a.duration_minutes}min
                         </span>
-                        <span className="text-[10px] uppercase text-muted-foreground">
+                        <span className="flex items-center gap-1 text-[10px] font-bold uppercase">
+                          <StatusIcon status={a.status} />
                           {statusLabels[a.status]}
                         </span>
                       </div>

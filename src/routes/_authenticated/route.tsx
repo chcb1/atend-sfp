@@ -28,7 +28,7 @@ function AuthenticatedLayout() {
 
   if (isLoading) {
     return (
-      <div className="grid min-h-screen place-items-center bg-muted/30 text-muted-foreground">
+      <div className="grid min-h-screen place-items-center bg-background text-muted-foreground">
         Carregando...
       </div>
     );
@@ -62,7 +62,7 @@ function PendingScreen({ status }: { status: "pending" | "rejected" }) {
   const rejected = status === "rejected";
 
   return (
-    <div className="grid min-h-screen place-items-center bg-muted/30 p-4">
+    <div className="grid min-h-screen place-items-center bg-background p-4">
       <Card className="max-w-md">
         <CardHeader className="items-center text-center">
           <div className="grid h-12 w-12 place-items-center rounded-full bg-primary/10 text-primary">

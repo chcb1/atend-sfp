@@ -105,7 +105,7 @@ function UsersAdmin() {
           <Users className="h-5 w-5" />
         </div>
         <div>
-          <h1 className="text-2xl font-semibold">Usuários</h1>
+          <h1 className="text-[30px] font-extrabold tracking-tight">Usuários</h1>
           <p className="text-sm text-muted-foreground">
             Gerencie contas e permissões de administrador.
           </p>

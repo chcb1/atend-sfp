@@ -109,16 +109,16 @@ export function AppShell({ children }: { children: ReactNode }) {
   const isActive = (to: string) => to === "/" ? location.pathname === "/" : location.pathname.startsWith(to);
 
   return (
-    <div className="min-h-screen bg-muted/30">
-      <header className="border-b bg-background">
-        <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 xl:gap-6">
+    <div className="min-h-screen bg-background">
+      <header>
+        <div className="mx-auto flex h-20 max-w-7xl items-center gap-3 px-4 xl:gap-6">
           <Link to="/" className="flex shrink-0 items-center gap-2 whitespace-nowrap font-semibold">
-            <div className="grid h-8 w-8 place-items-center rounded-md bg-primary text-primary-foreground">
+            <div className="grid h-10 w-10 place-items-center rounded-[14px] bg-primary text-primary-foreground shadow-primary">
               <Activity className="h-4 w-4" />
             </div>
             <span>Fisio App</span>
           </Link>
-          <nav aria-label="Navegação principal" className="hidden min-w-0 items-center gap-0.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:flex xl:gap-1">
+          <nav aria-label="Navegação principal" className="hidden min-w-0 items-center gap-1.5 overflow-x-auto p-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:flex xl:gap-1">
             {operationalItems.map((item) => {
               const active =
                 item.to === "/"
@@ -132,10 +132,10 @@ export function AppShell({ children }: { children: ReactNode }) {
                   title={item.label}
                   aria-label={item.label}
                   className={cn(
-                    "flex shrink-0 items-center gap-1.5 rounded-md px-1.5 py-2 text-sm font-medium transition-colors xl:gap-2 xl:px-3",
+                    "flex shrink-0 items-center gap-1.5 rounded-[14px] px-2.5 py-2 text-sm font-medium transition-shadow xl:gap-2 xl:px-3",
                     active
-                      ? "bg-accent text-accent-foreground"
-                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                      ? "bg-card font-bold text-primary shadow-inset"
+                      : "bg-card text-nav-foreground shadow-soft-sm hover:text-primary",
                   )}
                 >
                   <Icon className="h-4 w-4" />
@@ -147,7 +147,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div className="ml-auto hidden shrink-0 items-center md:flex">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" title="Menu da conta" aria-label="Menu da conta" className={cn(accountItems.some((item) => isActive(item.to)) && "bg-accent text-accent-foreground")}>
+                <Button variant="ghost" size="sm" title="Menu da conta" aria-label="Menu da conta" className={cn("rounded-[14px] bg-card text-nav-foreground shadow-soft-sm", accountItems.some((item) => isActive(item.to)) && "font-bold text-primary shadow-inset")}>
                   <UserRound className="h-4 w-4 shrink-0" />
                   <span className="hidden max-w-32 truncate xl:inline">{userEmail?.split("@")[0]}</span>
                 </Button>
@@ -174,11 +174,11 @@ export function AppShell({ children }: { children: ReactNode }) {
       </header>
       <main className="mx-auto max-w-7xl px-4 pt-8 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-8">{children}</main>
 
-      <nav aria-label="Navegação móvel" className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t bg-background px-2 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] md:hidden">
+      <nav aria-label="Navegação móvel" className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 bg-card shadow-bar px-2 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] md:hidden">
         {mobileItems.map((item) => {
           const Icon = item.icon;
           return (
-            <Button key={item.to} asChild variant="ghost" className={cn("h-14 min-w-0 flex-col gap-1 px-1 text-xs", isActive(item.to) ? "bg-accent text-accent-foreground" : "text-muted-foreground")}>
+            <Button key={item.to} asChild variant="ghost" className={cn("h-14 min-w-0 flex-col gap-1 px-1 text-xs", isActive(item.to) ? "rounded-[14px] bg-accent text-primary" : "text-muted-foreground")}>
               <Link to={item.to} aria-current={isActive(item.to) ? "page" : undefined}>
                 <Icon className="h-5 w-5" />
                 {item.label}
@@ -188,7 +188,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         })}
         <Popover open={moreOpen} onOpenChange={setMoreOpen}>
           <PopoverTrigger asChild>
-            <Button variant="ghost" className={cn("h-14 min-w-0 flex-col gap-1 px-1 text-xs", moreOpen || moreItems.some((item) => isActive(item.to)) ? "bg-accent text-accent-foreground" : "text-muted-foreground")}>
+            <Button variant="ghost" className={cn("h-14 min-w-0 flex-col gap-1 px-1 text-xs", moreOpen || moreItems.some((item) => isActive(item.to)) ? "rounded-[14px] bg-accent text-primary" : "text-muted-foreground")}>
               <MoreHorizontal className="h-5 w-5" />
               Mais
             </Button>

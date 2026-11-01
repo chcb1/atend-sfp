@@ -2,9 +2,9 @@ import type { AppointmentStatus } from "@/lib/types";
 
 /** Mapeamento de classes de status reaproveitado entre Agenda e Atendimentos. */
 export const statusStyles: Record<AppointmentStatus, string> = {
-  agendado: "border-l-4 border-l-blue-500 bg-blue-500/5",
-  concluido: "border-l-4 border-l-emerald-600 bg-emerald-600/5",
-  cancelado: "border-l-4 border-l-muted-foreground bg-muted/40 opacity-70",
+  agendado: "rounded-[10px] border-l-4 border-l-status-agendado-edge bg-status-agendado-bg text-status-agendado-block",
+  concluido: "rounded-[10px] border-l-4 border-l-status-concluido-edge bg-status-concluido-bg text-status-concluido-block",
+  cancelado: "rounded-[10px] border-l-4 border-l-status-cancelado-edge bg-status-cancelado-block-bg text-status-cancelado-fg",
 };
 
 export const statusLabels: Record<AppointmentStatus, string> = {
@@ -15,7 +15,7 @@ export const statusLabels: Record<AppointmentStatus, string> = {
 
 /** Classes de badge colorido por status (texto + fundo). */
 export const statusBadgeClass: Record<AppointmentStatus, string> = {
-  agendado: "bg-blue-500/10 text-blue-700 dark:text-blue-300",
-  concluido: "bg-emerald-600/10 text-emerald-700 dark:text-emerald-300",
-  cancelado: "bg-muted text-muted-foreground",
+  agendado: "rounded-full border-0 text-xs font-bold bg-status-agendado-bg text-status-agendado-fg",
+  concluido: "rounded-full border-0 text-xs font-bold bg-status-concluido-bg text-status-concluido-fg",
+  cancelado: "rounded-full border-0 text-xs font-bold bg-status-cancelado-bg text-status-cancelado-fg",
 };
