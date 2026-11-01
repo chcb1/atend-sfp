@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { Wallet, AlertCircle } from "lucide-react";
+import { Activity, AlertCircle } from "lucide-react";
 import { markSessionActivity } from "@/lib/session-activity";
 
 export const Route = createFileRoute("/auth")({
