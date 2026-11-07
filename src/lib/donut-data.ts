@@ -8,19 +8,21 @@ export const DONUT_OTHER_COLOR = "var(--donut-other)";
 
 export function groupOutflowSlices(items: DonutItem[]) {
   const positive = items.filter((item) => item.value > 0);
-  const colors = new Map(items.map((item, index) => [item.name, DONUT_COLORS[index % DONUT_COLORS.length]]));
-  if (positive.length <= 6) {
-    const slices = positive.map((item, index) => ({ ...item, color: DONUT_COLORS[index] }));
+  // Sempre ordena por valor decrescente (empate: ordem alfabética); cores seguem a posição.
+  const ranked = [...positive].sort(
+    (a, b) => b.value - a.value || a.name.localeCompare(b.name, "pt-BR"),
+  );
+  const colors = new Map(items.map((item) => [item.name, DONUT_OTHER_COLOR]));
+  if (ranked.length <= 6) {
+    const slices = ranked.map((item, index) => ({ ...item, color: DONUT_COLORS[index] }));
     slices.forEach((item) => colors.set(item.name, item.color));
     return { slices, colors };
   }
-  const ranked = [...positive].sort((a, b) => b.value - a.value);
   const kept = ranked.slice(0, 5);
   const grouped = ranked.slice(5);
   const otherColor = DONUT_OTHER_COLOR;
   const coloredKept = kept.map((item, index) => ({ ...item, color: DONUT_COLORS[index] }));
   coloredKept.forEach((item) => colors.set(item.name, item.color));
-  grouped.forEach((item) => colors.set(item.name, otherColor));
   return {
     slices: [...coloredKept, { name: "Outras", value: grouped.reduce((sum, item) => sum + item.value, 0), color: otherColor }],
     colors,

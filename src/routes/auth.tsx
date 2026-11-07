@@ -168,7 +168,6 @@ function AuthPage() {
             <Activity className="h-6 w-6" />
           </div>
           <h1 className="text-[30px] font-extrabold tracking-tight">Fisio App</h1>
-          <p className="text-sm text-muted-foreground">Controle de atendimentos</p>
         </div>
         <Card>
           <CardHeader>
