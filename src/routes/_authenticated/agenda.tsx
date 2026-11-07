@@ -43,6 +43,8 @@ import {
   Ban,
   CheckCircle2,
   AlertCircle,
+  RotateCcw,
+  CalendarClock,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -216,7 +218,7 @@ function AgendaPage() {
     setOpen(true);
   }
 
-  function openEdit(a: Appointment) {
+  function openEdit(a: Appointment, options?: { status?: AppointmentStatus }) {
     setFormError(null);
     const when = a.scheduled_at ? new Date(a.scheduled_at) : new Date();
     setForm({
@@ -230,7 +232,7 @@ function AgendaPage() {
       expenses: String(a.expenses ?? 0),
       tax: String(a.tax ?? 0),
       notes: a.notes ?? "",
-      status: a.status,
+      status: options?.status ?? a.status,
     });
     setOpen(true);
   }
@@ -306,6 +308,50 @@ function AgendaPage() {
       toast.success("Ação desfeita");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Não foi possível desfazer");
+    } finally {
+      setActionBusy(previous.id, false);
+    }
+  }
+
+  async function reactivate(previous: Appointment) {
+    if (pendingActions.current.has(previous.id) || !previous.scheduled_at) return;
+    setActionBusy(previous.id, true);
+    try {
+      await update({ data: {
+        id: previous.id,
+        client_id: previous.client_id,
+        client_name: previous.client_name,
+        procedure_id: previous.procedure_id,
+        procedure: previous.procedure,
+        scheduled_at: previous.scheduled_at,
+        duration_minutes: previous.duration_minutes ?? 60,
+        gross_value: Number(previous.gross_value),
+        expenses: Number(previous.expenses),
+        tax: Number(previous.tax),
+        notes: previous.notes,
+        status: "agendado",
+      } });
+      refreshStatuses();
+      const undoExpiresAt = Date.now() + 5000;
+      toast.success("Atendimento reativado", {
+        id: `appointment-status-${previous.id}`,
+        duration: 5000,
+        action: {
+          label: "Desfazer",
+          onClick: () => {
+            if (Date.now() <= undoExpiresAt) void restoreStatus(previous);
+          },
+        },
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Não foi possível reativar";
+      if (msg.includes("Conflito de horário")) {
+        toast.error("Conflito de horário com outro atendimento", {
+          description: "Use Reagendar para escolher uma nova data e hora.",
+        });
+      } else {
+        toast.error(msg);
+      }
     } finally {
       setActionBusy(previous.id, false);
     }
@@ -535,7 +581,7 @@ function AgendaPage() {
                       </p>
                       <p className="truncate text-muted-foreground">{a.procedure}</p>
                       <p className="text-muted-foreground">{brl(Number(a.gross_value))}</p>
-                      {a.status !== "cancelado" && (
+                      {a.status !== "cancelado" ? (
                         <div className="mt-1 flex flex-nowrap gap-0.5">
                           <Button
                             variant="ghost"
@@ -574,6 +620,33 @@ function AgendaPage() {
                               <Ban className="h-3.5 w-3.5" />
                             </Button>
                           )}
+                        </div>
+                      ) : (
+                        <div className="mt-1 flex flex-nowrap gap-0.5">
+                          {a.scheduled_at && new Date(a.scheduled_at).getTime() > Date.now() && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-10 w-10 shrink-0 md:h-8 md:w-8"
+                              disabled={busyIds.has(a.id)}
+                              title="Reativar"
+                              onClick={() => void reactivate(a)}
+                              aria-label="Reativar"
+                            >
+                              <RotateCcw className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-10 w-10 shrink-0 md:h-8 md:w-8"
+                            disabled={busyIds.has(a.id)}
+                            title="Reagendar"
+                            onClick={() => openEdit(a, { status: "agendado" })}
+                            aria-label="Reagendar"
+                          >
+                            <CalendarClock className="h-3.5 w-3.5" />
+                          </Button>
                         </div>
                       )}
                     </div>
