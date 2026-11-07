@@ -22,9 +22,19 @@ describe("outflow chart presentation", () => {
     expect(new Set(slices.map((item) => item.color)).size).toBe(6);
     expect(slices.map((item) => item.color)).not.toContain(DONUT_OTHER_COLOR);
   });
-  test("six positive slices are not grouped and zero entries are omitted", () => {
+  test("six positive slices are not grouped, zero entries are omitted and order is descending", () => {
     const items = [0, 1, 2, 3, 4, 5, 6].map((value) => ({ name: String(value), value, color: "color" }));
-    expect(groupOutflowSlices(items).slices.map((item) => item.name)).toEqual(["1", "2", "3", "4", "5", "6"]);
+    expect(groupOutflowSlices(items).slices.map((item) => item.name)).toEqual(["6", "5", "4", "3", "2", "1"]);
+  });
+  test("ties break alphabetically and colors follow the sorted position", () => {
+    const items = [
+      { name: "Beta", value: 50, color: "x" },
+      { name: "Alfa", value: 50, color: "x" },
+      { name: "Gama", value: 10, color: "x" },
+    ];
+    const { slices } = groupOutflowSlices(items);
+    expect(slices.map((item) => item.name)).toEqual(["Alfa", "Beta", "Gama"]);
+    expect(slices[0].color).toBe(DONUT_COLORS[0]);
   });
   test("percentages use the chart total and include the five percent threshold", () => {
     expect(donutPercentage(5, 100)).toBe(5);

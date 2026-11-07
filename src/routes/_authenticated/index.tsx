@@ -87,6 +87,14 @@ function Dashboard() {
     ...data.outflowBreakdown.demaisDespesas.map((item, index) => ({ name: item.category, value: item.total, color: DONUT_COLORS[(index + 2) % DONUT_COLORS.length] })),
   ] : []), [data]);
   const procedureChart = useMemo(() => groupOutflowSlices(data?.byProcedure.map((item, index) => ({ name: item.procedure, value: item.net, color: DONUT_COLORS[index % DONUT_COLORS.length] })) ?? []), [data]);
+  const outflowRows = useMemo(() => {
+    if (!data) return [];
+    return [
+      { name: "Custos de atendimento", value: data.outflowBreakdown.custosAtendimento },
+      { name: "Impostos e taxas", value: data.outflowBreakdown.impostosTaxas },
+      ...data.outflowBreakdown.demaisDespesas.map((d) => ({ name: d.category, value: d.total })),
+    ].sort((a, b) => b.value - a.value || a.name.localeCompare(b.name, "pt-BR"));
+  }, [data]);
 
   if (adminLoading) {
     return <div className="text-sm text-muted-foreground">Carregando...</div>;
@@ -155,7 +163,7 @@ function Dashboard() {
                 tone="muted"
                 projected={showProjection ? data.projection.expenses + data.projection.tax : undefined}
               />
-              <Card className="bg-primary text-primary-foreground shadow-primary">
+              <Card className={data.cashflow.result < 0 ? "bg-destructive text-destructive-foreground" : "bg-primary text-primary-foreground shadow-primary"}>
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-medium uppercase tracking-wide text-accent">
@@ -186,25 +194,13 @@ function Dashboard() {
                     <span>Natureza</span><span className="text-right">% das saídas</span><span className="text-right">Valor</span>
                   </div>
                   <ul className="divide-y">
-                    <BreakdownRow
-                      label="Custos de atendimento"
-                      value={data.outflowBreakdown.custosAtendimento}
-                      outflow={data.cashflow.outflow}
-                      color={outflowChart.colors.get("Custos de atendimento")}
-                    />
-                    <BreakdownRow
-                      label="Impostos e taxas"
-                      value={data.outflowBreakdown.impostosTaxas}
-                      outflow={data.cashflow.outflow}
-                      color={outflowChart.colors.get("Impostos e taxas")}
-                    />
-                    {data.outflowBreakdown.demaisDespesas.map((d) => (
+                    {outflowRows.map((row) => (
                       <BreakdownRow
-                        key={d.category}
-                        label={d.category}
-                        value={d.total}
+                        key={row.name}
+                        label={row.name}
+                        value={row.value}
                         outflow={data.cashflow.outflow}
-                        color={outflowChart.colors.get(d.category)}
+                        color={outflowChart.colors.get(row.name)}
                       />
                     ))}
                   </ul>

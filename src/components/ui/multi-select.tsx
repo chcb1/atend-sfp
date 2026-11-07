@@ -30,7 +30,7 @@ export function MultiSelect({
         <Button
           id={id}
           variant="outline"
-          className={cn("justify-between font-normal", className)}
+          className={cn("field-base justify-between font-normal", className)}
         >
           <span className="truncate">
             {value.length ? `${label} (${value.length})` : `${label}: Todos`}

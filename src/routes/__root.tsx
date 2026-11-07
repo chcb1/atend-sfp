@@ -83,14 +83,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Fisio App — Controle de Atendimentos" },
+      { title: "Fisio App" },
       { name: "description", content: "Controle de atendimentos: cadastro, dashboard e exportação para Excel." },
       { name: "author", content: "Fisio App" },
-      { property: "og:title", content: "Fisio App — Controle de Atendimentos" },
+      { property: "og:title", content: "Fisio App" },
       { property: "og:description", content: "Controle de atendimentos: cadastro, dashboard e exportação para Excel." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Fisio App — Controle de Atendimentos" },
+      { name: "twitter:title", content: "Fisio App" },
       { name: "twitter:description", content: "Controle de atendimentos: cadastro, dashboard e exportação para Excel." },
     ],
     links: [

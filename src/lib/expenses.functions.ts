@@ -147,7 +147,8 @@ export const createRecurringExpense = createServerFn({ method: "POST" })
         category: data.category || null,
         amount,
         expense_date: date,
-        status: defaultStatus(date),
+        // Série: todos nascem pendentes, independentemente da data.
+        status: "pendente" as const,
         recurrence_group_id: groupId,
         installment_number: i + 1,
         installment_total: n,
