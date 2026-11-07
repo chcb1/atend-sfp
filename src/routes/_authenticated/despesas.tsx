@@ -57,7 +57,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Pencil, Trash2, Receipt, CheckCircle2, CalendarX } from "lucide-react";
+import { Plus, Pencil, Trash2, Receipt, CheckCircle2, CalendarX, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import type { Expense, ExpenseStatus } from "@/lib/types";
 import { brl } from "@/lib/format";
@@ -378,9 +378,16 @@ function ExpensesPage() {
                     </TableCell>
                     <TableCell className="text-muted-foreground">{e.category || "—"}</TableCell>
                     <TableCell>
-                      <Badge variant="outline" className={STATUS_CLASS[e.status]}>
-                        {STATUS_LABEL[e.status]}
-                      </Badge>
+                      {e.status === "pendente" && e.expense_date < todayISO() ? (
+                        <Badge variant="outline" className="gap-1 border-transparent bg-destructive/10 text-destructive">
+                          <AlertCircle className="h-3 w-3" />
+                          Vencida
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className={STATUS_CLASS[e.status]}>
+                          {STATUS_LABEL[e.status]}
+                        </Badge>
+                      )}
                     </TableCell>
                     <TableCell className="text-right tabular-nums">{brl(Number(e.amount))}</TableCell>
                     <TableCell className="text-right whitespace-nowrap">
@@ -665,7 +672,7 @@ function ExpenseForm({
                 {mode === "parcelado"
                   ? `${n}x de aprox. ${brl(perInstallment)} — a última parcela ajusta o arredondamento.`
                   : `${n} lançamentos mensais de ${brl(parsedAmount)}.`}{" "}
-                A situação de cada lançamento é definida pela data (futura = pendente).
+                Todos os lançamentos nascem pendentes; marque como paga ao pagar.
               </p>
             </div>
           )}

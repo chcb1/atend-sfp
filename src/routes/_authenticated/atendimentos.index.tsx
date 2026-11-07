@@ -3,7 +3,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { listAppointments, deleteAppointment } from "@/lib/appointments.functions";
-import type { AppointmentStatus } from "@/lib/types";
+import { updateScheduledAppointment } from "@/lib/schedule.functions";
+import type { Appointment, AppointmentStatus } from "@/lib/types";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { thisMonthRange, lastMonthRange } from "@/lib/date-ranges";
 import { statusLabels, statusBadgeClass } from "@/lib/appointment-status";
@@ -23,7 +24,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, Pencil, Trash2, Download, ClipboardList, Search } from "lucide-react";
+import { Plus, Pencil, Trash2, Download, ClipboardList, Search, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { brl, formatDateBR } from "@/lib/format";
@@ -47,6 +48,73 @@ function AppointmentsList() {
   const qc = useQueryClient();
   const list = useServerFn(listAppointments);
   const del = useServerFn(deleteAppointment);
+  const updateSched = useServerFn(updateScheduledAppointment);
+  const [reactivatingId, setReactivatingId] = useState<string | null>(null);
+
+  async function reactivate(r: Appointment) {
+    if (!r.scheduled_at) return;
+    setReactivatingId(r.id);
+    try {
+      await updateSched({ data: {
+        id: r.id,
+        client_id: r.client_id,
+        client_name: r.client_name,
+        procedure_id: r.procedure_id,
+        procedure: r.procedure,
+        scheduled_at: r.scheduled_at,
+        duration_minutes: r.duration_minutes ?? 60,
+        gross_value: Number(r.gross_value),
+        expenses: Number(r.expenses),
+        tax: Number(r.tax),
+        notes: r.notes,
+        status: "agendado",
+      } });
+      qc.invalidateQueries({ queryKey: ["appointments"] });
+      qc.invalidateQueries({ queryKey: ["schedule"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+      const undoExpiresAt = Date.now() + 5000;
+      toast.success("Atendimento reativado", {
+        id: `appointment-status-${r.id}`,
+        duration: 5000,
+        action: {
+          label: "Desfazer",
+          onClick: () => {
+            if (Date.now() > undoExpiresAt) return;
+            void updateSched({ data: {
+              id: r.id,
+              client_id: r.client_id,
+              client_name: r.client_name,
+              procedure_id: r.procedure_id,
+              procedure: r.procedure,
+              scheduled_at: r.scheduled_at!,
+              duration_minutes: r.duration_minutes ?? 60,
+              gross_value: Number(r.gross_value),
+              expenses: Number(r.expenses),
+              tax: Number(r.tax),
+              notes: r.notes,
+              status: "cancelado",
+            } }).then(() => {
+              qc.invalidateQueries({ queryKey: ["appointments"] });
+              qc.invalidateQueries({ queryKey: ["schedule"] });
+              qc.invalidateQueries({ queryKey: ["dashboard"] });
+              toast.success("Ação desfeita");
+            }).catch((err: unknown) => toast.error(err instanceof Error ? err.message : "Não foi possível desfazer"));
+          },
+        },
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Não foi possível reativar";
+      if (msg.includes("Conflito de horário")) {
+        toast.error("Conflito de horário com outro atendimento", {
+          description: "Reagende pela agenda para escolher uma nova data e hora.",
+        });
+      } else {
+        toast.error(msg);
+      }
+    } finally {
+      setReactivatingId(null);
+    }
+  }
 
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
@@ -214,6 +282,18 @@ function AppointmentsList() {
                       {brl(Number(r.net_value))}
                     </TableCell>
                     <TableCell className="text-right">
+                      {r.status === "cancelado" && r.scheduled_at && new Date(r.scheduled_at) > new Date() && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          title="Reativar"
+                          aria-label="Reativar"
+                          disabled={reactivatingId === r.id}
+                          onClick={() => void reactivate(r)}
+                        >
+                          <RotateCcw className="h-4 w-4" />
+                        </Button>
+                      )}
                       <Button asChild variant="ghost" size="icon">
                         <Link to="/atendimentos/$id/editar" params={{ id: r.id }}>
                           <Pencil className="h-4 w-4" />
