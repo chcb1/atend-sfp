@@ -225,12 +225,13 @@
     outline: 2px solid var(--ring);
     outline-offset: 2px;
   }
-  /* Card dentro de Card fica plano */
-  [data-slot="card"] [data-slot="card"] {
-    box-shadow: none;
-    border: 1px solid var(--surface-flat-border);
-    background-color: var(--surface-flat);
-  }
+}
+
+/* Card dentro de Card fica plano */
+[data-slot="card"] [data-slot="card"] {
+  box-shadow: none;
+  border: 1px solid var(--surface-flat-border);
+  background-color: var(--surface-flat);
 }
 
 @media (prefers-reduced-motion: reduce) {
